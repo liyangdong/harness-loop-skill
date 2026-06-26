@@ -1,0 +1,42 @@
+<!--
+  Renders into: TASKS.md (repo root)
+  Placeholders consumed:
+    {{PROJECT_NAME}}              — project name (Q-after-Q8 or basename)
+    {{CURRENT_EPIC_DESCRIPTION}}  — one-line epic (user input; fallback "(fill in current epic)")
+    {{SUBTASK_1}}                 — first subtask line (user input; fallback "- [ ] (define subtask 1)")
+    {{SUBTASK_2}}                 — second subtask line
+    {{SUBTASK_3}}                 — third subtask line
+-->
+
+# Tasks
+
+Active task board for {{PROJECT_NAME}}. Updated each loop iteration.
+
+## Current epic
+
+{{CURRENT_EPIC_DESCRIPTION}}
+
+## Subtasks
+
+- [ ] {{SUBTASK_1}}
+- [ ] {{SUBTASK_2}}
+- [ ] {{SUBTASK_3}}
+
+## Done
+
+(initially empty)
+
+## Blocked
+
+(initially empty)
+
+---
+
+## Conventions
+
+- Each subtask is one checkable unit of work.
+- Check off (`[x]`) only after `scripts/check-tests.sh` passes for that subtask.
+- If blocked: move to Blocked section + add entry to `state/iteration.md`.
+- One PR per subtask when feasible (per throughput-merges concept).
+- When a subtask completes, append a one-line summary to `state/iteration.md`
+  under the Progress log table before checking the next one off.

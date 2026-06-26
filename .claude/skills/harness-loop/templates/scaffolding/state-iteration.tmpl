@@ -1,0 +1,45 @@
+<!--
+  Renders into: state/iteration.md
+  Placeholders consumed:
+    {{MAX_ITERATIONS}}  — loop cap (default 30; env HARNESS_LOOP_MAX_ITERATIONS)
+    {{TIMESTAMP}}       — date -Iseconds at generation time
+    {{PROGRESS_SIG}}    — "initial" at first generation; updated by loop each iter
+    {{LAST_ACTION}}     — "loop bootstrap" at first generation; updated by loop
+  Read by:
+    scripts/check-stuck.sh     — reads `progress_signature` history
+    scripts/check-consistency.sh — reads `iteration` and `max_iterations`
+-->
+
+---
+iteration: 1
+max_iterations: {{MAX_ITERATIONS}}
+last_updated: {{TIMESTAMP}}
+progress_signature: {{PROGRESS_SIG}}
+---
+
+# Iteration State
+
+## Current
+
+- Iteration: 1 / {{MAX_ITERATIONS}}
+- Active subtask: see TASKS.md
+- Last action: {{LAST_ACTION}}
+
+## Progress log
+
+| Iter | Date | Files changed | Tests passing | Notes |
+|------|------|---------------|---------------|-------|
+| 1 | {{TIMESTAMP}} | (initial) | 0 | Loop started |
+
+## Blockers
+
+(none)
+
+## Recovery
+
+If loop restarts, read this file first to resume:
+
+1. Current iteration number (front matter `iteration:`).
+2. Active subtask in `TASKS.md` (the first unchecked `[ ]`).
+3. Last `progress_signature` (front matter) — compare to the previous N
+   signatures for stuck detection (see `scripts/check-stuck.sh`).
