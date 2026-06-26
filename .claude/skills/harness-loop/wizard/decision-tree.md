@@ -35,6 +35,34 @@ Notes:
 
 ---
 
+## Always-generated subdir AGENTS.md (independent of Q1-Q8)
+
+Regardless of Q1-Q8 answers, the wizard always renders three subdir
+`AGENTS.md` files. These describe directories that every harness-loop
+project contains, so the templates are answer-independent and live under
+`templates/scaffolding/always-dirs/`:
+
+| Output path in project | Template source |
+|---|---|
+| `state/AGENTS.md` | `templates/scaffolding/always-dirs/state-agents.md.tmpl` |
+| `scripts/AGENTS.md` | `templates/scaffolding/always-dirs/scripts-agents.md.tmpl` |
+| `docs/AGENTS.md` | `templates/scaffolding/always-dirs/docs-agents.md.tmpl` |
+
+Rationale: the C6 check (`check-consistency.sh`) verifies that
+methodology-required subdirs each carry an `AGENTS.md`. `state/`,
+`scripts/`, and `docs/` are present in every project (they hold
+universally-required artifacts: loop state, check scripts, project docs).
+Generating these AGENTS.md files up-front avoids C6 false positives on
+freshly-bootstrapped projects and gives the agent a uniform navigation
+surface on day one.
+
+These three files contain **no placeholders** — the conventions they
+document are uniform across all projects. A project needing project-specific
+state/scripts/docs rules edits the rendered file after generation; the
+template is the starting baseline.
+
+---
+
 ## Q2 (methodology) → methodology templates + scaffolding
 
 | Q2 answer | Methodology block (injected as `{{METHODOLOGY_BLOCK}}`) | Subdir scaffolding copied to project |
@@ -267,6 +295,9 @@ the user confirms.
 - `.opencode/config.json` (from `opencode-config.json.tmpl`)
 - `README.md` (snippet appended from `readme-section.tmpl`)
 - `.gitignore` (lines appended from `gitignore.tmpl`)
+- `state/AGENTS.md` (from `templates/scaffolding/always-dirs/state-agents.md.tmpl`)
+- `scripts/AGENTS.md` (from `templates/scaffolding/always-dirs/scripts-agents.md.tmpl`)
+- `docs/AGENTS.md` (from `templates/scaffolding/always-dirs/docs-agents.md.tmpl`)
 
 **Conditionally written (per answers):**
 - Per Q2 methodology → that methodology's scaffolding directory (see Q2 table)

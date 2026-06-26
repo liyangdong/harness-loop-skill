@@ -111,6 +111,9 @@ separately to make patches visible to the user before approval:
 - AGENTS.md
 - TASKS.md
 - state/iteration.md
+- state/AGENTS.md
+- scripts/AGENTS.md
+- docs/AGENTS.md
 - scripts/check-promise.sh
 - scripts/check-tests.sh
 - scripts/check-consistency.sh

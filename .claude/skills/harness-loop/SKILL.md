@@ -35,7 +35,14 @@ A constraint system in the project root:
 3. Read each selected template file
 4. Read `templates/strict-mode.md` to determine exit-code behavior
 5. Assemble root `AGENTS.md` using `templates/agents-root.md.tmpl` + selected concept/methodology blocks
-6. Write subdir `AGENTS.md` files per Q2 methodology using `templates/agents-subdir.md.tmpl`
+6. Write subdir `AGENTS.md` files. Two groups, both required:
+   - **Always-generated** (regardless of answers): render the three templates under
+     `templates/scaffolding/always-dirs/` into `state/AGENTS.md`, `scripts/AGENTS.md`,
+     and `docs/AGENTS.md`. These hold project-agnostic conventions and avoid C6
+     false positives on day one.
+   - **Methodology-specific** (per Q2): render `templates/agents-subdir.md.tmpl`
+     once per methodology dir generated in step 7 (e.g., `docs/specs/AGENTS.md` for
+     SDD, `tests/AGENTS.md` for TDD). These hold methodology-scoped rules.
 7. Write `scripts/`, `.githooks/`, `.github/workflows/`, scaffolding/, `.opencode/`, `TASKS.md`, `state/`, `README.md` patch, `.gitignore` patch
 8. Print `wizard/summary-format.md` rendered with answers; wait for `Y/n` confirmation. Only write files after `Y`.
 
