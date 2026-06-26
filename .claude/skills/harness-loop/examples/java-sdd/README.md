@@ -1,0 +1,27 @@
+## How the AI agent works on this repo
+
+This repo uses an [agents.md](https://agents.md)-compatible constraint system. The AI agent (opencode or similar) follows:
+
+1. **Root entry**: reads `AGENTS.md` (~100 lines) for project mission, 6 concepts, Ralph tenets, and pointers to deeper rules.
+2. **Progressive disclosure**: when entering a subdirectory, reads that subdir's `AGENTS.md` for local rules.
+3. **Mechanical checks**: before commit, `.githooks/pre-commit` runs `scripts/check-*.sh`. CI re-runs the same on PRs.
+4. **Task tracking**: `TASKS.md` is the source of truth for in-progress work. `state/iteration.md` tracks loop progress.
+5. **Strict mode**: this repo is **advisory** — failures warn but do not block.
+
+### To enable pre-commit hook locally
+
+```
+git config core.hooksPath .githooks
+```
+
+### To manually run checks
+
+```
+bash scripts/check-consistency.sh
+```
+
+### To start a loop iteration (if using opencode)
+
+```
+opencode  # reads AGENTS.md, works on TASKS.md, writes state/iteration.md
+```

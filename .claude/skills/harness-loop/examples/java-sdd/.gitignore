@@ -1,0 +1,18 @@
+## How the AI agent works on this repo (appended section for .gitignore)
+
+# State (iteration tracking committed; transcripts not)
+state/transcript*
+state/*.log
+state/last-output.txt
+
+# Backups
+*.bak
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Language-specific (Java)
+target/
+*.class
+.mvn/wrapper/maven-wrapper.jar
