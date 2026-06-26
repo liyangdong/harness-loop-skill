@@ -1,0 +1,12 @@
+{
+  "Q1": "应用代码",
+  "Q2": "TDD",
+  "Q3": "Java",
+  "Q4": ["外部验证", "检查点"],
+  "Q5": null,
+  "Q6": "claude-sonnet-4-6",
+  "Q7": "生成",
+  "Q8": "strict",
+  "PROJECT_NAME": "java-tdd-example",
+  "MISSION_ONE_LINER": "Demonstrates a Java project with TDD methodology under harness-loop constraints."
+}
