@@ -64,33 +64,27 @@ imports and package layout.
   implementation in tests.
 - For generated stubs, use `mockgen` (gomock) or `counterfeiter` when the
   interface has many methods.
-- Mock external collaborators (HTTP, DB, filesystem, clock). Do not mock the
+- Mock external collaborators (HTTP, DB, filesystem, clock); never mock the
   unit under test itself.
 
 ## 6. Benchmarks
 
-- Benchmark functions are named `Benchmark<Subject>` and take `*testing.B`:
-  ```go
-  func BenchmarkAdd(b *testing.B) {
-      for i := 0; i < b.N; i++ { Add(1, 2) }
-  }
-  ```
-- Run with `go test -bench=. ./...`.
+- Benchmark functions are named `Benchmark<Subject>` and take `*testing.B`.
+  Run with `go test -bench=. ./...`.
 
 ## 7. Running tests
 
-- One command: `go test ./...` — runs all tests in all packages.
-- A single package: `go test ./src/calculator`.
-- A single test: `go test ./src/calculator -run TestAdd`.
+- All tests: `go test ./...`. Single package: `go test ./src/calculator`.
+- Single test: `go test ./src/calculator -run TestAdd`.
 - Verbose: `go test ./... -v`. Stop on first failure: `go test ./... -failfast`.
 
 ## 8. Coverage threshold — ≥80% line coverage
 
 - Target: **≥80% line coverage** on production code.
 - Enforced via `go test -cover -coverprofile=coverage.out ./...` with a CI
-  gate (e.g. a script parsing `go tool cover -func` for the total line).
-- Run locally: `go test -cover ./...` (prints a per-package summary).
-- HTML report: `go tool cover -html=coverage.out`.
+  gate parsing `go tool cover -func` for the total line.
+- HTML report: `go tool cover -html=coverage.out`. Local quick view:
+  `go test -cover ./...` (per-package summary).
 - 80% is a floor, not a ceiling. Tests must exercise the *important* paths,
   not chase a number — but anything below 80% is a flag for review.
 
@@ -100,5 +94,5 @@ imports and package layout.
   project picked (TDD, SDD, DDD, etc.). The `*_test.go` files (rendered from
   `tests-go/`) cover test-side conventions only.
 - Integration tests (real DB, HTTP, >1s wall time) live alongside source as
-  `*_integration_test.go` and are gated by a build tag
-  (`//go:build integration`) so `go test ./...` skips them by default.
+  `*_integration_test.go` with build tag `//go:build integration` so
+  `go test ./...` skips them by default.

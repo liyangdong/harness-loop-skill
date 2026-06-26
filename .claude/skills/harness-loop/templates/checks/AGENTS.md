@@ -1,18 +1,11 @@
 # AGENTS.md — templates/checks/
 
-> Conventions for every `check-*.sh.tmpl` file. These templates render into
-> `scripts/check-*.sh` in generated projects and are the mechanical enforcement
-> layer (concepts → exit codes). Get them right; a broken check is worse than
-> no check because it trains the agent to ignore failures.
+> Conventions for every `check-*.sh.tmpl` file. These render into
+> `scripts/check-*.sh` in generated projects — the mechanical enforcement
+> layer (concepts → exit codes). A broken check is worse than no check: it
+> trains the agent to ignore failures.
 
-## 1. Purpose
-
-Each template renders into a standalone bash script that the pre-commit hook,
-CI workflow, and the agent itself call to verify one constraint family. The
-script's job is to translate a soft rule ("tests must pass", "numbers must be
-consistent") into a hard exit code that downstream tooling can branch on.
-
-## 2. File shape
+## 1. File shape
 
 Every `check-*.sh.tmpl` MUST start with exactly:
 
@@ -25,15 +18,13 @@ set -uo pipefail
 ```
 
 Notes:
-- `set -uo pipefail` only. NEVER `set -e` — we accumulate `FAILURES` and decide
-  the exit code at the end so the agent sees every problem in one run, not
-  just the first.
+- `set -uo pipefail` only. NEVER `set -e` — we accumulate `FAILURES` and
+  decide exit at the end so the agent sees every problem in one run.
 - `{{STRICT_MODE}}` substitutes to `strict` or `advisory`.
 - Quote every variable expansion (`"$FOO"`) — `set -u` makes unquoted
-  undefined vars fatal, and word-splitting on paths with spaces is a classic
-  footgun.
+  undefined vars fatal; word-splitting on paths with spaces is a footgun.
 
-## 3. Output format
+## 2. Output format
 
 Every check emits one of two lines per outcome:
 
@@ -44,84 +35,61 @@ Every check emits one of two lines per outcome:
      修复: <concrete fix instruction>
   ```
 
-`<check-id>` matches the C-numbered constraint in `templates/concepts/03-mechanical-enforcement.md`
-(C1, C2, C3, ...). The fix instruction MUST be specific enough to act on
-without re-reading the spec — name the file, name the command, name the
-expected value. Vague messages like "fix the tests" violate the
-harness-engineering requirement that lint errors carry their own fix.
+`<check-id>` matches the C-numbered constraint in
+`templates/concepts/03-mechanical-enforcement.md` (C1, C2, ...). Fix rules: §7.
 
-## 4. Strict vs advisory branching
+## 3. Strict vs advisory branching
 
 Every template ends with the same tail:
 
 ```bash
 if [[ "$FAILURES" -gt 0 ]]; then
   if [[ "$STRICT" == "strict" ]]; then
-    echo "🛑 <family>: $FAILURES failures (strict mode)"
-    exit 1
+    echo "🛑 <family>: $FAILURES failures (strict mode)"; exit 1
   else
-    echo "⚠️  <family>: $FAILURES failures (advisory mode, not blocking)"
-    exit 0
+    echo "⚠️  <family>: $FAILURES failures (advisory, not blocking)"; exit 0
   fi
 fi
-
-echo "✅ <family>: all checks passed"
-exit 0
+echo "✅ <family>: all checks passed"; exit 0
 ```
 
 - `strict` (default per Q8): non-zero exit blocks commit and CI.
 - `advisory`: same output, zero exit, commit proceeds.
+- `{{STRICT_MODE}}` is baked in at generation time; do not branch on it
+  anywhere except this tail block.
 
-The mode is baked in at generation time from `{{STRICT_MODE}}`. Do not branch
-on the mode anywhere except this tail block — every check should run the same
-way regardless of mode.
+## 4. Path conventions
 
-## 5. Path conventions
+- All paths are relative to the project root, not to `scripts/`. The
+  pre-commit hook `cd`s to root first. Never hardcode `/Users/...` or
+  `C:\...`; use forward slashes (bash on Windows handles them fine).
 
-- All paths are relative to the project root (the repo the script is generated
-  into), not relative to `scripts/`. The pre-commit hook `cd`s to root before
-  invoking.
-- Never hardcode `/Users/...` or `C:\...` — these templates ship to many
-  machines.
-- Use forward slashes everywhere; bash on Windows handles them fine via Git
-  Bash / WSL.
+## 5. Composition rules
 
-## 6. Composition rules
-
-- A check template owns exactly one constraint family. Do not nest C3 (tests)
+- A check template owns exactly one constraint family — do not nest C3 (tests)
   logic inside C1 (numbers) templates.
 - The pre-commit hook calls each `scripts/check-*.sh` in sequence; do not
-  source one from another.
-- Shared helpers (if any) live in `scripts/lib.sh` and are sourced with
-  `source "$(dirname "$0")/lib.sh"`. Keep helpers minimal — most checks need
-  none.
+  source one from another. Shared helpers live in `scripts/lib.sh`.
 
-## 7. Lint error message requirements
+## 6. Lint error message requirements
 
-Per the harness-engineering concept, every error message MUST embed:
+Every error message MUST embed (1) the check id, (2) the offending file or
+value, (3) a one-line fix instruction.
 
-1. The check id (so the agent can grep the spec).
-2. The offending file or value (so the agent knows where to look).
-3. A one-line fix instruction (so the agent knows what to do).
+- Bad:  `❌ tests failed`
+- Good: `❌ C3 pytest failed` / `   修复: cd into tests/, run pytest, fix imports until green`
+- If you cannot write a concrete fix instruction, the check is too vague —
+  redefine it or drop it.
 
-Bad:  `❌ tests failed`
-Good: `❌ C3 pytest failed` / `   修复: cd into tests/, run pytest, fix
-imports until green`
+## 7. Self-verification
 
-If you cannot write a concrete fix instruction, the check is too vague —
-redefine it or drop it.
-
-## 8. Self-verification
-
-Before committing a new or edited `check-*.sh.tmpl`:
+Before committing a `check-*.sh.tmpl`, substitute placeholders and
+bash-syntax-check the result; a template that produces invalid bash is a bug.
 
 ```bash
-# Substitute placeholders and bash-syntax-check the result.
-sed -e 's/{{STRICT_MODE}}/strict/g' \
-    -e 's/{{LANGUAGE}}/Java/g' \
+sed -e 's/{{STRICT_MODE}}/strict/g' -e 's/{{LANGUAGE}}/Java/g' \
     templates/checks/check-foo.sh.tmpl > /tmp/check.sh
-bash -n /tmp/check.sh && echo "OK" || echo "FAIL"
+bash -n /tmp/check.sh && echo OK || echo FAIL
 ```
 
-A template that produces invalid bash after substitution is a bug. Do not
-commit on `FAIL`.
+(The skill's own L1 self-check is `scripts/check-skill.sh`.)
