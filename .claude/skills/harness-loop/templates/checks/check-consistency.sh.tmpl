@@ -95,7 +95,7 @@ check_c2() {
       [[ "$existing" == "$p" ]] && { dup=1; break; }
     done
     [[ "$dup" -eq 0 ]] && paths+=("$p")
-  done < <(grep -oE '([A-Za-z0-9_.-]+/){1,2}' "$agents" 2>/dev/null)
+  done < <(grep -oE '([A-Za-z0-9_.-]+/)+' "$agents" 2>/dev/null)
 
   if [[ "${#paths[@]}" -eq 0 ]]; then
     echo "ℹ️  C2 skipped: no subdir paths mentioned in AGENTS.md"
