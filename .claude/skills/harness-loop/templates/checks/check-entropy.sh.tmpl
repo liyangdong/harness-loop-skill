@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# C5: Entropy scan — detects pattern drift and quality degradation.
+
+set -uo pipefail
+
+STRICT="{{STRICT_MODE}}"
+FAILURES=0
+ENTROPY_LOG="state/entropy-log.md"
+
+# Initialize entropy log if missing
+if [[ ! -f "$ENTROPY_LOG" ]]; then
+  mkdir -p state
+  cat > "$ENTROPY_LOG" <<EOF
+# Entropy Log
+
+Tracks pattern drift and quality issues found by C5.
+
+| Date | Issue | Location | Severity |
+|------|-------|----------|----------|
+EOF
+fi
+
+# Check 1: TODO/FIXME accumulation
+TODO_COUNT=$(grep -rE "TODO|FIXME" --include="*.{{SOURCE_EXT}}" src/ 2>/dev/null | wc -l)
+if [[ "$TODO_COUNT" -gt {{TODO_THRESHOLD:-20}} ]]; then
+  echo "❌ C5-1: TODO/FIXME count ($TODO_COUNT) exceeds threshold ({{TODO_THRESHOLD:-20}})"
+  echo "   修复: 清理 src/ 下的 TODO/FIXME 到阈值以下"
+  FAILURES=$((FAILURES + 1))
+else
+  echo "✅ C5-1: TODO/FIXME count ($TODO_COUNT) within threshold"
+fi
+
+# Check 2: File length outliers (any file > 500 lines)
+LARGE_FILES=$(find src/ -name "*.{{SOURCE_EXT}}" -exec wc -l {} \; 2>/dev/null | awk '$1 > 500 {print $2}')
+if [[ -n "$LARGE_FILES" ]]; then
+  echo "⚠️  C5-2: large files (>500 lines):"
+  echo "$LARGE_FILES" | while read f; do echo "   - $f"; done
+  echo "   修复: 拆分大文件, 单一职责"
+  FAILURES=$((FAILURES + 1))
+else
+  echo "✅ C5-2: no oversized files"
+fi
+
+# Check 3: Duplicated function names (basic heuristic)
+DUPES=$(grep -rhE "^(function |def |func |public )" src/ 2>/dev/null | sort | uniq -d | head -5)
+if [[ -n "$DUPES" ]]; then
+  echo "❌ C5-3: duplicated declarations:"
+  echo "$DUPES" | while read d; do echo "   - $d"; done
+  echo "   修复: 重命名或合并重复声明"
+  FAILURES=$((FAILURES + 1))
+else
+  echo "✅ C5-3: no duplicate declarations"
+fi
+
+# Append findings to entropy log
+if [[ "$FAILURES" -gt 0 ]]; then
+  echo "| $(date -Iseconds) | entropy scan | multiple | warn |" >> "$ENTROPY_LOG"
+fi
+
+[[ "$STRICT" == "strict" && "$FAILURES" -gt 0 ]] && exit 1 || exit 0

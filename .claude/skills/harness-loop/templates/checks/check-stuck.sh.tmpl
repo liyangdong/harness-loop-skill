@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Stuck detection: compares last K iterations for progress.
+
+set -uo pipefail
+
+STRICT="{{STRICT_MODE}}"
+THRESHOLD="{{STUCK_THRESHOLD:-3}}"
+STATE_FILE="state/iteration.md"
+
+if [[ ! -f "$STATE_FILE" ]]; then
+  echo "❌ stuck: state file missing: $STATE_FILE"
+  exit 1
+fi
+
+# Extract: iteration number, last-progress signature (files changed + tests passing)
+CURRENT_ITER=$(grep '^iteration:' "$STATE_FILE" | tail -1 | awk '{print $2}')
+LAST_PROGRESS_SIG=$(grep '^progress_signature:' "$STATE_FILE" | tail -"$THRESHOLD" | sort -u | wc -l)
+
+if [[ "$LAST_PROGRESS_SIG" -le 1 && "$CURRENT_ITER" -ge "$THRESHOLD" ]]; then
+  echo "🛑 stuck: no progress in last $THRESHOLD iterations (currently at $CURRENT_ITER)"
+  echo "   修复: "
+  echo "     1. 检查 TASKS.md 当前子任务是否可达成"
+  echo "     2. 考虑拆解子任务或换思路"
+  echo "     3. 在 state/iteration.md 写下阻塞点"
+  echo "     4. 终止 loop, 让人类介入"
+  exit 2  # exit 2 = stuck (distinct from check failure)
+else
+  echo "✅ stuck: progress detected in last $THRESHOLD iterations"
+  exit 0
+fi

@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# C4: Completion promise detection
+# Looks for <promise>{{PROMISE_TOKEN}}</promise> in last agent output.
+
+set -uo pipefail
+
+STRICT="{{STRICT_MODE}}"
+TOKEN="{{PROMISE_TOKEN}}"
+OUTPUT_FILE="${1:-state/last-output.txt}"
+
+if [[ ! -f "$OUTPUT_FILE" ]]; then
+  echo "❌ C4: output file not found: $OUTPUT_FILE"
+  echo "   修复: 确保 agent 把输出写到 $OUTPUT_FILE"
+  [[ "$STRICT" == "strict" ]] && exit 1 || exit 0
+fi
+
+if grep -q "<promise>${TOKEN}</promise>" "$OUTPUT_FILE"; then
+  echo "✅ C4: promise '$TOKEN' detected"
+  exit 0
+else
+  echo "❌ C4: promise '$TOKEN' not found in $OUTPUT_FILE"
+  echo "   修复: 继续任务直到完成, 然后输出 <promise>${TOKEN}</promise>"
+  [[ "$STRICT" == "strict" ]] && exit 1 || exit 0
+fi
