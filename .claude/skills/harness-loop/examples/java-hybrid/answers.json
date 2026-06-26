@@ -1,0 +1,13 @@
+{
+  "Q1": "应用代码",
+  "Q2": "Hybrid",
+  "Q2_sub": ["SDD", "TDD"],
+  "Q3": "Java",
+  "Q4": ["完成信号", "外部验证", "检查点"],
+  "Q5": null,
+  "Q6": "claude-opus-4-7",
+  "Q7": "生成",
+  "Q8": "strict",
+  "PROJECT_NAME": "java-hybrid-example",
+  "MISSION_ONE_LINER": "Java project combining SDD (spec-first) and TDD (test-first) under harness-loop constraints."
+}
