@@ -55,7 +55,7 @@ fi
 
 # Sub-check 2: generated check-consistency.sh runs (may report findings, but should run)
 if [[ -f scripts/check-consistency.sh ]]; then
-  bash check-consistency.sh || {
+  bash scripts/check-consistency.sh || {
     # Non-zero exit means checks found issues, which is OK for a fresh project
     # UNLESS the script itself crashed. Differentiate:
     exit_code=$?

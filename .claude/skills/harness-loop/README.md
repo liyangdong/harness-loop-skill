@@ -95,12 +95,25 @@ The skill ships three verification layers:
 - **L1 — skill self-check**: `bash .claude/skills/harness-loop/scripts/check-skill.sh`
   validates that this skill is internally consistent (templates present, wizard files in
   sync, no sample exceeds the 100-line rule).
-- **L2 — generated-output check**: the check scripts written into the target project's
-  `.claude/checks/` validate that the generated AGENTS.md and scaffold are coherent.
-- **L3 — methodology check**: the generated `check-*.sh` scripts run against the target
-  project's actual code (type-check, lint, test, build) per the methodology loop.
+- **L2 — example regression check**: `bash .claude/skills/harness-loop/scripts/check-examples.sh`
+  regenerates each `examples/<name>/` from its `answers.json` via the non-interactive
+  runner (`scripts/run-with-answers.sh`) and diffs against the committed snapshot.
+  Catches drift between the renderer and the snapshots.
+- **L3 — bootstrap self-check**: `bash .claude/skills/harness-loop/scripts/check-bootstrap.sh`
+  generates a fresh `java-tdd` project via the runner and exercises the generated
+  project's own check scripts, git hook, CI workflow, and AGENTS.md shape.
 
-Run L1 before committing any change to this skill (see `AGENTS.md` §5).
+L2 and L3 depend on `scripts/run-with-answers.sh` (a thin bash wrapper around
+`run-with-answers.py`) — a non-interactive renderer that reads an `answers.json`
+and writes a complete project layout. To run the renderer manually:
+
+```bash
+bash .claude/skills/harness-loop/scripts/run-with-answers.sh \
+  .claude/skills/harness-loop/examples/java-tdd/answers.json /tmp/output
+```
+
+Run L1 before committing any change to this skill (see `AGENTS.md` §5). Run L2
+and L3 to catch regressions in the renderer or drift in the example snapshots.
 
 ## References
 
