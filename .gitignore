@@ -30,3 +30,17 @@ __pycache__/
 target/
 *.class
 .mvn/wrapper/maven-wrapper.jar
+
+# Harness-loop generated additions
+state/transcript*
+state/*.log
+state/last-output.txt
+
+# Backups
+*.bak
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Language-specific ignores: (none for Non-code project)
