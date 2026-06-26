@@ -240,6 +240,7 @@ library. If a placeholder appears in a `.tmpl` file, it MUST be listed here.
 | `{{SUBTASK_N}}` | User input (asked inline after Q8 if not provided); fallback: `"- [ ] (define subtask N)"` for N=1..3 | `tasks-md.tmpl` |
 | `{{SUBDIR_PATH}}` / `{{SUBDIR_PURPOSE}}` / `{{SUBDIR_CONVENTIONS}}` / `{{SUBDIR_RELATED_CHECKS}}` | Per-subdirectory values derived from Q2/Q3 | `agents-subdir.md.tmpl` (one render per generated subdir) |
 | `{{GROUP_ID}}` / `{{ARTIFACT_ID}}` / `{{VERSION}}` / `{{PACKAGE}}` / `{{CHECKSTYLE_FAILS_ON_ERROR}}` | Java-specific constants: `GROUP_ID=com.example`, `ARTIFACT_ID={{PROJECT_NAME}}`, `VERSION=0.1.0-SNAPSHOT`, `PACKAGE=com.example.{{lowercase PROJECT_NAME}}`, `CHECKSTYLE_FAILS_ON_ERROR=true` (advisory mode → `false`) | `tests-java/pom.xml.tmpl`, `tests-java/src/test/java/FirstTest.java.tmpl` |
+| `{{FEATURE_NAME}}` | User input (asked inline when SDD is selected): the human-readable name of the feature the spec describes, e.g., "User Authentication". Falls back to the spec filename's slug title-cased if the user does not provide one. | `specs/template.md` (the H1 of the generated spec) |
 
 ### Substitution semantics
 
