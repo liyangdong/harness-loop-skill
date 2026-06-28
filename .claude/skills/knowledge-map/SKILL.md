@@ -35,12 +35,12 @@ A knowledge base at the chosen output dir (default `<repo>/docs/knowledge/`):
 ## 7-step flow
 
 1. Read `wizard/questions.md`, ask Q1-Q4 (repo / deepwiki URL / projectPath / output dir)
-2. Harvest step H1: fetch deepwiki root, parse subsystem list
+2. Harvest step H1: fetch deepwiki root, parse subsystem list (in-memory)
 3. Ask Q5 (multiSelect, populated from H1) + Q6 (depth) + Q7 (strictness)
-4. Harvest steps H2-H4: per selected subsystem — fetch deep-dive, verify anchors via codegraph, drift analysis
-5. Harvest step H5a: write `.meta/fragments/*` + `manifest.tsv` + `harvest-data.json` + `sources.json` + `anchors.json`
-6. Render step H5b: run `scripts/render-kb.sh` to emit KNOWLEDGE.md + domains/*.md + drift.md
-7. Print `wizard/summary-format.md` summary; wait for `Y/n`. Only write after `Y`.
+4. Harvest steps H2-H4: per selected subsystem — fetch deep-dive, verify anchors via codegraph, drift analysis (in-memory)
+5. Print `wizard/summary-format.md` summary; wait for `Y/n`. The Y/n gate precedes ALL writes (steps 6-7) — abort on `n`.
+6. Harvest step H5a: write `.meta/fragments/*` + `manifest.tsv` + `harvest-data.json` + `sources.json` + `anchors.json`
+7. Render step H5b: run `scripts/render-kb.sh` to emit KNOWLEDGE.md + domains/*.md + drift.md
 
 ## Progressive loading
 
