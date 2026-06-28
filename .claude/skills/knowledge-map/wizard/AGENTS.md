@@ -56,7 +56,7 @@ subsystem list" option.
 | Tweak Chinese wording | `questions.md` only (keep meaning stable, sync spec) |
 | Change skip / dependency logic | `questions.md` dependencies field + `decision-tree.md` |
 | Tune harvest extraction | `harvest-pipeline.md` only |
-| Add a render fragment | `harvest-pipeline.md` H5a + `decision-tree.md` (depth/shape) + matching `templates/*.tmpl` placeholder |
+| Add a render fragment / new KB section | `harvest-pipeline.md` H5a + `decision-tree.md` (depth/shape) + matching `templates/*.tmpl` placeholder + `wizard/summary-format.md` (file list — currently hardcoded) |
 
 Any change to `questions.md` that adds/removes an option or changes a dependency MUST
 also update `decision-tree.md` in the same commit.

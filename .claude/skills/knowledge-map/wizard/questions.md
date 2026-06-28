@@ -151,7 +151,8 @@ at copy time, controlling exit codes of the in-target L1/L3/L4 scripts. See
 ## Post-question step
 
 After Q7 is answered, render `wizard/summary-format.md` with all 7 answers (Q5 expanded
-to the selected subsystem list, subsystem count from H1) and print the configuration
-summary. Wait for explicit `Y` confirmation before any writes (SKILL.md step 5 — the Y/n
-gate precedes ALL writes, including H2-H5 and render). On `n` or abort, discard all
-collected answers and exit cleanly without writing anything.
+to the selected subsystem list; `{{count}}` = selected subsystem count = `len(Q5 selection)`,
+NOT the full H1-parsed count — the summary reflects what will actually be generated) and
+print the configuration summary. Wait for explicit `Y` confirmation before any writes
+(SKILL.md step 5 — the Y/n gate precedes ALL writes, including H2-H5 and render). On `n`
+or abort, discard all collected answers and exit cleanly without writing anything.

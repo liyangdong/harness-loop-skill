@@ -21,7 +21,7 @@ Each selected subsystem becomes one domain. Domain id = kebab-case of the subsys
 - "Build and Release System" → `build-release`
 
 For each selected subsystem:
-1. **H2** fetches the deepwiki deep-dive page at `<Q2-root>/<id-slug>` (e.g.
+1. **H2** fetches the deepwiki deep-dive page at `<Q2>/<id-slug>` (e.g.
    `https://deepwiki.com/apache/lucene/indexing`), parses concept clusters + `Sources:`
    citations.
 2. **H3** verifies every citation via `codegraph explore` against Q3's projectPath.
@@ -43,7 +43,13 @@ Controls how H5a groups fragments and how H5b renders the domain file. Default: 
 |---|---|---|
 | shallow | `domains/<id>.md` has narrative + a single flat anchor list section (no per-cluster breakdown) | Fewest fragments: `<id>-anchors.md` is one flat table; `<id>-concepts.md` is a one-line-per-cluster bullet list |
 | medium | `domains/<id>.md` has narrative + one section per concept cluster, each with its own anchor table | `<id>-concepts.md` carries cluster subsections; `<id>-anchors.md` groups rows by cluster |
-| deep | Each concept cluster becomes its own `domains/<id>/<cluster>.md` sub-file (finest progressive disclosure) | Per-cluster fragment sets under `.meta/fragments/<id>/<cluster>-*`; manifest gains `domain/<id>/<cluster>` scope rows |
+| deep | Each concept cluster becomes its own `domains/<id>/<cluster>.md` sub-file (finest progressive disclosure) | Per-cluster fragment sets under `.meta/fragments/<id>/<cluster>-*`; manifest gains one row per cluster |
+
+**Deep mode manifest scope:** the manifest `scope` column stays `domain` (unchanged from
+shallow/medium); the `id` column carries `<id>/<cluster>` for deep-mode cluster rows, and
+the renderer writes `domains/<id>/<cluster>.md` (vs `domains/<id>.md` for the domain-level
+row). I.e. deep mode adds cluster rows to the same `domain` scope, it does NOT introduce a
+compound `domain/<id>/<cluster>` scope value.
 
 Fragment count scales with depth: shallow ≈ 8 per domain, medium ≈ 8 per domain (richer
 content), deep ≈ 8 × cluster-count per domain. The `knowledge-topology.md` global
@@ -71,7 +77,7 @@ this flag.
 | Condition | Behavior |
 |---|---|
 | `.codegraph/` exists at projectPath | H3 verifies every anchor (RESOLVED/STALE/MISSING); H4 computes blindspots from blast-radius callerCount; in-target L3/L4 enabled |
-| `.codegraph/` missing at projectPath | H3 marks every anchor `UNVERIFIED` (records symbol/location as-is, no verification); H4 blindspot step skipped (no callerCount available); in-target L3/L4 print a skip-warning and exit 0. Warn the user at Q3 time to index first. |
+| `.codegraph/` missing at projectPath | H3 marks every anchor `UNVERIFIED` (records symbol/location as-is, no verification); domain status becomes `unverified` (NOT `drifted` — drift requires a MISSING/STALE anchor, UNVERIFIED alone is absence-of-verification); H4 blindspot step skipped (no callerCount available) and `all-unverified` orphan clusters are recorded but do NOT force the domain to `drifted`; in-target L3/L4 print a skip-warning and exit 0. Warn the user at Q3 time to index first. |
 
 The degraded path still produces a usable KB — the conceptual skeleton (H1/H2) is
 unaffected, only anchor verification and drift analysis degrade. The user can re-run

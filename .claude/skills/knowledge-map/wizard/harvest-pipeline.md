@@ -31,7 +31,7 @@
      parse-failure flag (see fallback below).
    - Under it, each `### <Name>` (or `- **<Name>**` list item) is a top-level subsystem.
    - For each subsystem, capture the "See detailed documentation: <Name>" link (or the
-     subsystem name's slug) → subsystem deep-dive URL. Derive as `<Q2-root>/<id-slug>`
+     subsystem name's slug) → subsystem deep-dive URL. Derive as `<Q2>/<id-slug>`
      when an explicit link is absent.
 3. Parse per-subsystem Core Classes with their `(path:line)` citations. Each citation
    becomes a candidate anchor: `{symbol, location, citedLine}`.
@@ -199,6 +199,15 @@ trusts the fragments verbatim, so harvest MUST format them correctly here.
   - any `MISSING` or any orphan concept in this domain → `drifted`
   - all `UNVERIFIED` → `verified` with a caveat (treat as verified-shape since codegraph
     wasn't available; the caveat surfaces in `DRIFT_SUMMARY`).
+  - **Precedence for UNVERIFIED (no-`.codegraph/` degraded mode):** when the cause is
+    UNVERIFIED (absence of verification, not confirmed drift), status is `unverified` —
+    distinct from `drifted`. An all-UNVERIFIED domain is `unverified`, NOT `drifted`, and
+    an orphan cluster caused solely by UNVERIFIED anchors is NOT a drift orphan (record it
+    but don't force the domain to `drifted`). **Drift (`drifted`) requires at least one
+    MISSING or STALE anchor.** This invariant resolves the apparent contradiction between
+    the `all-UNVERIFIED → verified` rule above (which now reads as `unverified`) and H4's
+    `any orphan → drifted`: an orphan whose reason is `all-unverified` does NOT trigger
+    `drifted`, only `all-missing` / `all-stale` orphans do.
 - **Topology line per domain** (in `knowledge-topology.md`):
   `- **<name>** → domains/<id>.md — <cluster-count> concept clusters, <anchor-count>
   anchors (<resolved-count>✅)`
