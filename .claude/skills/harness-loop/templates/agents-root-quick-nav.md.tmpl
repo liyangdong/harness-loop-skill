@@ -1,0 +1,70 @@
+<!--
+  Layout C: Quick-nav AGENTS.md (cnblogs style).
+  Minimal root file + quick-nav table + detailed docs/ structure.
+  Best for production codebases with a team.
+  Placeholders consumed: same as agents-root.md.tmpl (layout A) plus:
+    {{QUICK_NAV}}  - rendered table of "你想做什么 → 去哪里看"
+-->
+# {{PROJECT_NAME}}
+
+{{MISSION_ONE_LINER}}
+{{HYBRID_CALLOUT}}
+
+## 快速导航
+
+| 你想做什么 | 去哪里看 |
+|---|---|
+| 了解系统架构 | docs/architecture/overview.md |
+| 了解模块边界 | docs/architecture/boundaries.md |
+| 了解数据流转 | docs/architecture/data-flow.md |
+| 了解编码规范 | docs/conventions/README.md |
+| 了解命名约定 | docs/conventions/naming.md |
+| 了解错误处理 | docs/conventions/error-handling.md |
+| 了解测试规范 | docs/conventions/testing.md |
+| 了解日志规范 | docs/conventions/logging.md |
+| 了解当前任务 | TASKS.md |
+| 了解当前迭代 | state/iteration.md |
+| 了解熵积累 | state/entropy-log.md |
+| 运行检查 | scripts/check-tests.sh, scripts/check-consistency.sh |
+
+## 硬性规则（CI 会验证）
+
+1. 分层依赖方向：`types → config → repo → service → runtime → ui`（或 `{{LAYER_ORDER}}`）
+   - 高层只能依赖低层；反向依赖被 `scripts/check-architecture.sh` 拒绝（advisory 默认）
+2. 单文件 ≤ {{MAX_FILE_LINES}} 行 — Gate 5 强制
+3. 新增代码必须有测试 — Gate 3 + `check-tests.sh` 强制
+4. 文档头含 `last_updated:` frontmatter — Gate 7 提示陈旧
+5. 完成信号 `<promise>DONE</promise>` — `check-promise.sh` 检测
+{{QUICK_NAV}}
+
+## 6 大概念
+
+{{CONCEPTS_BLOCK}}
+
+## Ralph 信条
+
+{{RALPH_TENETS_BLOCK}}
+
+## 工作循环
+
+{{METHODOLOGY_BLOCK}}
+
+## 子目录索引
+
+{{SUBDIR_INDEX}}
+
+## 机械化检查
+
+{{CHECKS_INDEX}}
+
+{{ENTRY_POINT_BLOCK}}
+
+## 当前任务
+
+{{TASKS_POINTER}}
+
+## 严格度
+
+本仓库采用 **{{STRICT_MODE_DECL}}** 模式。
+- strict: 任何检查失败阻断 commit/merge
+- advisory: 仅警告不阻断

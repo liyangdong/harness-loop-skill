@@ -1,0 +1,33 @@
+---
+last_updated: 1970-01-01T00:00:00+00:00
+status: draft
+owner: TBD
+---
+
+# Data Flow
+
+> How a request travels from the edge through the layers and back.
+
+## Typical request lifecycle
+
+```
+(request) → ui → runtime → service → repo → (storage)
+                ↓         ↓         ↓
+              Provider  Provider  Provider
+              (auth)   (logging) (telemetry)
+```
+
+(Fill in: replace the diagram with the project's actual flow.)
+
+## Failure modes
+
+| Where | What can fail | Detection | Recovery |
+|---|---|---|---|
+| ui/ | malformed input | runtime type check | 400 response |
+| service/ | business rule violation | unit test | 422 response |
+| repo/ | storage unavailable | health check | retry + circuit breaker |
+
+## References
+
+- Architecture overview: `docs/architecture/overview.md`
+- Error handling: `docs/conventions/error-handling.md`

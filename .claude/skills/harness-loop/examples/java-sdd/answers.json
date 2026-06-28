@@ -4,9 +4,8 @@
   "Q3": "Java",
   "Q4": ["检查点"],
   "Q5": null,
-  "Q6": "claude-sonnet-4-6",
-  "Q7": "生成",
-  "Q8": "advisory",
+  "Q6": "生成",
+  "Q7": "advisory",
   "PROJECT_NAME": "java-sdd-example",
   "MISSION_ONE_LINER": "Java project using SDD (spec-driven) workflow under harness-loop constraints."
 }

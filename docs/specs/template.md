@@ -1,4 +1,4 @@
-# Spec: {{FEATURE_NAME}}
+# Spec: <feature-name>
 
 > Copy this file to `docs/specs/<feature-slug>.md` and fill in the sections.
 > Do not delete sections — leave placeholder text in place until you have a

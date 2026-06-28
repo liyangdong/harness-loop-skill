@@ -58,6 +58,8 @@ greppable and distinct from normal output.
 | After cleanup pass | switch to strict |
 | Newly added check on existing repo | advisory for 1 release, then strict |
 
-The mode is set once per project in `.opencode/config.json` (`STRICT_MODE` field) and
-substituted into every check at generation time. Switching modes later requires
-regenerating the check scripts — see the wizard Q8 default.
+The mode is set once per project at generation time (wizard Q7) and substituted
+into every check via the `{{STRICT_MODE}}` token. The skill is agent-neutral —
+no tool-specific config file is emitted; the strict/advisory decision lives in
+the generated `check-*.sh` exit semantics and the root `AGENTS.md` 严格度 section.
+Switching modes later requires regenerating the check scripts — see wizard Q7.

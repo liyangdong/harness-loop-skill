@@ -1,37 +1,6 @@
-# OS
-.DS_Store
-Thumbs.db
-desktop.ini
+# Harness-loop generated — append to existing .gitignore
 
-# Editor
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Backups
-*.bak
-*.tmp
-
-# Claude Code / skill runtime artifacts
-state/transcript*
-state/*.log
-.claude/settings.local.json
-
-# Node (if examples include any)
-node_modules/
-
-# Python (if examples include any)
-__pycache__/
-*.pyc
-.venv/
-
-# Java / Maven (if examples include any)
-target/
-*.class
-.mvn/wrapper/maven-wrapper.jar
-
-# Harness-loop generated additions
+# State (iteration tracking committed; transcripts not)
 state/transcript*
 state/*.log
 state/last-output.txt
@@ -43,4 +12,4 @@ state/last-output.txt
 .DS_Store
 Thumbs.db
 
-# Language-specific ignores: (none for Non-code project)
+

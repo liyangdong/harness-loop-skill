@@ -1,0 +1,49 @@
+<!--
+  Layout C — architecture/overview.md scaffold.
+  Emits a starting architecture doc the user fills in.
+  Placeholders consumed: {{PROJECT_NAME}}, {{LAYER_ORDER}}, {{LANGUAGE}}
+-->
+---
+last_updated: 1970-01-01T00:00:00+00:00
+status: draft
+owner: TBD
+---
+
+# {{PROJECT_NAME}} — System Architecture
+
+> One-paragraph description of what this system is and who uses it. Replace
+> this paragraph with the project's elevator pitch.
+
+## Layered structure
+
+The codebase is organized into the following layers. Lower layers must not
+import from higher layers; the reverse is allowed.
+
+```
+src/
+{{LAYER_ORDER_SPLIT_INTO_DIRS}}
+```
+
+Layer order (low to high): `{{LAYER_ORDER}}`
+
+| Layer | Responsibility | May import from |
+|---|---|---|
+| (fill in per layer) | (one-line responsibility) | (lower layers only) |
+
+## Dependency rules
+
+- Lower layers (types, config) may not import from higher layers (service, ui).
+- Cross-cutting concerns (auth, logging, telemetry) flow through a Provider,
+  not direct calls.
+- Violations are detected by `scripts/check-architecture.sh` (advisory by default).
+
+## Runtime topology
+
+(Fill in: how the system runs in production — processes, queues, databases,
+external integrations. Embed an ASCII or Mermaid diagram if helpful.)
+
+## References
+
+- Layer boundaries: `docs/architecture/boundaries.md`
+- Data flow: `docs/architecture/data-flow.md`
+- Conventions: `docs/conventions/README.md`

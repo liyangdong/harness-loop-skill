@@ -3,8 +3,9 @@
 > Conventions for every file under `templates/scaffolding/`. These templates
 > render into the project-state files a generated project ships with on day one:
 > `TASKS.md`, `state/iteration.md`, `state/entropy-log.md`, project-root
-> patches (gitignore, opencode-config, readme-section), and the always-generated
-> subdir AGENTS.md files.
+> patches (gitignore, readme-section), and the always-generated
+> subdir AGENTS.md files. The skill is agent-neutral — no tool-specific
+> config files are scaffolded here.
 
 ## 1. Purpose
 
@@ -42,7 +43,7 @@ work begins. Get them exactly right.
 
 - **Top-level `*.tmpl`** — root-level state files (`tasks-md.tmpl`,
   `state-iteration.tmpl`, `state-entropy.tmpl`) plus project-root patches
-  (`gitignore.tmpl`, `opencode-config.json.tmpl`, `readme-section.tmpl`).
+  (`gitignore.tmpl`, `readme-section.tmpl`).
 - **`methodology-dirs/`** — one subdir per methodology (SDD, TDD, BDD, DDD,
   RDD) and per-language test tree (`tests-java/`, `tests-python/`, etc.).
   Whole subdir copied into the project when Q2/Q3 selects it. May contain
@@ -81,20 +82,8 @@ Rendered scaffolding files land in the user's first commit. Therefore:
 
 ## 8. Self-verification
 
-```bash
-# Substitute every placeholder with its default; verify none remain.
-sed -e 's/{{PROJECT_NAME}}/demo/g' \
-    -e 's/{{MAX_ITERATIONS}}/30/g' \
-    -e 's/{{TIMESTAMP}}/1970-01-01T00:00:00+00:00/g' \
-    -e 's/{{PROGRESS_SIG}}/initial/g' \
-    -e 's/{{LAST_ACTION}}/loop bootstrap/g' \
-    -e 's/{{CURRENT_EPIC_DESCRIPTION}}/(fill in current epic)/g' \
-    -e 's/{{SUBTASK_1}}/- [ ] (define subtask 1)/g' \
-    -e 's/{{SUBTASK_2}}/- [ ] (define subtask 2)/g' \
-    -e 's/{{SUBTASK_3}}/- [ ] (define subtask 3)/g' \
-    templates/scaffolding/<file>.tmpl > /tmp/out.md
-grep -c '{{' /tmp/out.md  # 0 for placeholder-using templates
-```
-
-Non-zero `grep` for a placeholder-using template = misspelled/missing
-placeholder. Placeholder-free templates (declared `(none)`) print `0` trivially.
+After substituting every `{{PLACEHOLDER}}` with the documented fallback
+(`{{PROJECT_NAME}}` → `demo`, `{{TIMESTAMP}}` → epoch, etc.), `grep -c '{{'`
+on the rendered output must return `0` for placeholder-using templates.
+Non-zero = misspelled or missing placeholder. Placeholder-free templates
+(declared `(none)`) print `0` trivially.

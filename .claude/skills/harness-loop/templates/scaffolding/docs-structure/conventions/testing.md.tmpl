@@ -1,0 +1,32 @@
+---
+last_updated: 1970-01-01T00:00:00+00:00
+status: active
+owner: TBD
+---
+
+# Testing
+
+## Coverage
+
+- Target: ≥ 80% line coverage on new code (enforced by Gate 3).
+- Coverage is a floor, not a ceiling — prefer meaningful tests over hitting
+  the number.
+
+## Layers
+
+| Layer | What to test | Tool |
+|---|---|---|
+| Unit | pure functions, no I/O | language default (JUnit / pytest / vitest / go test) |
+| Integration | module composition, real I/O against a stub | same tool, separate suite |
+| E2E | user-visible flows | Playwright / Cypress / Selenium |
+
+## Naming
+
+- Unit test files: `<name>.test.<ext>` next to the source file.
+- Test names describe behavior: `it("returns 404 when user is missing", ...)`.
+
+## What to skip
+
+- Don't test third-party libraries.
+- Don't test private helpers indirectly via reflection — test the public API.
+- Don't write snapshot tests for objects that change shape every iteration.

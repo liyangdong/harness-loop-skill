@@ -1,0 +1,182 @@
+<!--
+  C7: Layered architecture dependency-direction check.
+  Verifies imports don't violate the configured layer order.
+  Placeholders consumed:
+    {{LAYER_ORDER}}   - space-separated layer order, low-level first (e.g. "types config repo service runtime ui")
+    {{SOURCE_DIR}}    - source root (default "src")
+    {{LANGUAGE}}      - language token (Python / Node / Go / Java / Multi / Non-code)
+    {{ARCH_STRICT}}   - "strict" (exit 1 on violation) or "advisory" (exit 0, warn only)
+  Generated script is invoked from the repo root.
+-->
+#!/usr/bin/env bash
+# C7: Layered architecture dependency-direction check.
+#
+# Verifies that imports do not violate the configured layer order. Each layer
+# may only import from layers at its own level or lower (left of it in the
+# order). Higher layers importing lower-only layers are fine; the reverse is
+# a violation.
+#
+# Layer order: {{LAYER_ORDER}}
+# Source dir:  {{SOURCE_DIR}}
+# Mode:        {{ARCH_STRICT}}  (advisory warns; strict fails the build)
+
+set -uo pipefail
+
+LAYER_ORDER="{{LAYER_ORDER}}"
+SOURCE_DIR="{{SOURCE_DIR}}"
+LANGUAGE="{{LANGUAGE}}"
+ARCH_STRICT="{{ARCH_STRICT}}"
+
+# Non-code projects skip this check.
+if [[ "$LANGUAGE" == "Non-code" ]]; then
+  echo "✅ C7 skipped: non-code project"
+  exit 0
+fi
+
+# Convert space-separated order into a positional lookup: layer name -> index.
+LAYERS=($LAYER_ORDER)
+layer_index() {
+  local target="$1"
+  local i=0
+  for layer in "${LAYERS[@]}"; do
+    if [[ "$layer" == "$target" ]]; then
+      echo "$i"
+      return 0
+    fi
+    i=$((i+1))
+  done
+  echo "-1"
+  return 1
+}
+
+VIOLATIONS=0
+WARNINGS=0
+
+# Walk the source tree. For each file in a known layer dir, scan imports.
+# Only files directly under $SOURCE_DIR/<layer>/ are checked (one level deep).
+if [[ ! -d "$SOURCE_DIR" ]]; then
+  echo "✅ C7: no $SOURCE_DIR/ directory; nothing to check"
+  exit 0
+fi
+
+for layer_dir in "${LAYERS[@]}"; do
+  src="$SOURCE_DIR/$layer_dir"
+  [[ -d "$src" ]] || continue
+  src_idx=$(layer_index "$layer_dir")
+
+  # Choose import pattern per language. Each match captures an imported path
+  # containing a layer name; we then extract the layer.
+  case "$LANGUAGE" in
+    Python)
+      # `from foo.bar import x` or `import foo.bar`
+      pattern='(from|import)\s+([a-zA-Z0-9_.-]+)'
+      extract_layer() {
+        # echo "$1" | sed -E 's/^([a-zA-Z0-9_]+).*/\1/'   # first segment
+        local s="$1"
+        # strip leading "from " or "import "
+        s="${s#from }"; s="${s#import }"
+        # take first dot-separated segment
+        echo "${s%%.*}"
+      }
+      ;;
+    Node|TypeScript)
+      # import ... from '...'; require('...')
+      pattern="(from\\s+['\"][^'\"]+['\"]|require\\(['\"][^'\"]+['\"]\\))"
+      extract_layer() {
+        local s="$1"
+        # take last path segment if relative, else first /-split non-relative
+        if [[ "$s" == *../* || "$s" == *./* ]]; then
+          # relative: last segment
+          s="${s##*/}"
+        else
+          s="${s%%/*}"
+        fi
+        echo "${s%%.*}"
+      }
+      ;;
+    Go)
+      pattern='"([^"]+)"'
+      extract_layer() {
+        local s="$1"
+        # take last segment of the import path
+        s="${s##*/}"
+        echo "${s%%.*}"
+      }
+      ;;
+    Java)
+      pattern='import\s+([a-zA-Z0-9_.]+);'
+      extract_layer() {
+        local s="$1"
+        s="${s#import }"; s="${s%;}"
+        # Java packages often go groupId.layer...; treat last segment as layer
+        s="${s##*.}"
+        echo "$s"
+      }
+      ;;
+    *)
+      pattern='.*'
+      extract_layer() { echo ""; }
+      ;;
+  esac
+
+  # Find source files for this layer.
+  case "$LANGUAGE" in
+    Python) files=$(find "$src" -name '*.py' -type f 2>/dev/null) ;;
+    Node|TypeScript) files=$(find "$src" \( -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.jsx' \) -type f 2>/dev/null) ;;
+    Go) files=$(find "$src" -name '*.go' -type f 2>/dev/null) ;;
+    Java) files=$(find "$src" -name '*.java' -type f 2>/dev/null) ;;
+    *) files="" ;;
+  esac
+
+  for f in $files; do
+    [[ -f "$f" ]] || continue
+    # Read each import-shaped line and extract the layer it points to.
+    while IFS= read -r line; do
+      [[ -z "$line" ]] && continue
+      # Capture the "argument" portion: the imported path.
+      case "$LANGUAGE" in
+        Python)
+          arg=$(echo "$line" | sed -E 's/^(from|import)\s+([a-zA-Z0-9_.-]+).*/\2/')
+          ;;
+        Node|TypeScript)
+          # extract the quoted path
+          arg=$(echo "$line" | sed -E "s/.*['\"]([^'\"]+)['\"].*/\1/")
+          ;;
+        Go)
+          arg=$(echo "$line" | sed -E 's/.*"([^"]+)".*/\1/')
+          ;;
+        Java)
+          arg=$(echo "$line" | sed -E 's/^import\s+([a-zA-Z0-9_.]+);.*/\1/')
+          ;;
+        *) arg="" ;;
+      esac
+      [[ -z "$arg" || "$arg" == "$line" ]] && continue
+      imported_layer=$(extract_layer "$arg")
+      [[ -z "$imported_layer" ]] && continue
+      target_idx=$(layer_index "$imported_layer")
+      [[ "$target_idx" -lt 0 ]] && continue   # not a known layer; skip
+      if [[ "$target_idx" -gt "$src_idx" ]]; then
+        # Higher-index layer imported from lower-index dir: violation.
+        echo "❌ $f: layer '$layer_dir' (idx $src_idx) imports from '$imported_layer' (idx $target_idx)"
+        echo "   import: $arg"
+        echo "✅ FIX: invert the dependency — extract an interface in the lower layer,"
+        echo "        or move the shared code down to a layer both can depend on."
+        echo "📖 See: docs/architecture/boundaries.md (or AGENTS.md if absent)"
+        VIOLATIONS=$((VIOLATIONS+1))
+      fi
+    done < <(grep -E "$pattern" "$f" 2>/dev/null)
+  done
+done
+
+if [[ "$VIOLATIONS" -gt 0 ]]; then
+  if [[ "$ARCH_STRICT" == "strict" ]]; then
+    echo "🛑 C7: $VIOLATIONS architecture violations (strict mode)"
+    exit 1
+  else
+    echo "⚠️  ADVISORY: C7 found $VIOLATIONS architecture violations (advisory mode)"
+    exit 0
+  fi
+fi
+
+echo "✅ C7: architecture dependency direction OK ($WARNINGS warnings)"
+exit 0

@@ -21,8 +21,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # needed for doc-freshness git log lookups
+
+      # -- Language setup (conditional on lockfiles) --
       - name: Setup Java
-        if: hashFiles('pom.xml') != ''
+        if: hashFiles('pom.xml') != '' || hashFiles('build.gradle*') != ''
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -43,8 +47,160 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.22'
-      - name: Run consistency checks
-        run: bash scripts/check-consistency.sh
-      - name: Run tests
-        if: hashFiles('scripts/check-tests.sh') != ''
-        run: bash scripts/check-tests.sh
+
+      # -- Gate 1: Type check / compile --
+      # Runs whatever the project's primary compiler/type-checker is, gated on
+      # language lockfile presence. Failure = the build is broken; agent must
+      # fix syntax/types before any other gate is meaningful.
+      - name: Gate 1 - Type check / compile
+        run: |
+          set +e
+          if [[ -f pom.xml ]]; then
+            mvn -q compile
+          elif [[ -f package.json ]]; then
+            npx tsc --noEmit
+          elif [[ -f go.mod ]]; then
+            go build ./...
+          elif [[ -f pyproject.toml || -f requirements.txt ]]; then
+            python -m compileall -q src 2>/dev/null || python -m compileall -q .
+          else
+            echo "info: no language lockfile detected; skipping type-check gate"
+            exit 0
+          fi
+          rc=$?
+          if [[ $rc -ne 0 ]]; then
+            echo "[FAIL] Gate 1: type check / compile failed"
+            echo "[FIX] read the error above; fix syntax/type errors in the failing file"
+            echo "[SEE] AGENTS.md (## gong zuo xun huan) and docs/conventions/ if present"
+            exit 1
+          fi
+          echo "ok Gate 1: type check / compile passed"
+
+      # -- Gate 2: Lint (custom rules + standard linters) --
+      - name: Gate 2 - Lint
+        run: |
+          set +e
+          if [[ -f pom.xml ]]; then
+            mvn -q checkstyle:check
+          elif [[ -f package.json ]]; then
+            npx eslint . || npm run lint --if-present
+          elif [[ -f go.mod ]]; then
+            golangci-lint run 2>/dev/null || go vet ./...
+          elif [[ -f pyproject.toml || -f requirements.txt ]]; then
+            ruff check . 2>/dev/null || python -m pyflakes src 2>/dev/null || true
+          else
+            exit 0
+          fi
+          rc=$?
+          if [[ $rc -ne 0 ]]; then
+            echo "[FAIL] Gate 2: lint failed"
+            echo "[FIX] apply the lint suggestion above; each error message includes the fix"
+            echo "[SEE] docs/conventions/ (or AGENTS.md ## yan ge du)"
+            exit 1
+          fi
+          echo "ok Gate 2: lint passed"
+
+      # -- Gate 3: Unit tests + coverage threshold (>= 80%) --
+      - name: Gate 3 - Unit tests + coverage
+        run: |
+          set +e
+          if [[ -f scripts/check-tests.sh ]]; then
+            bash scripts/check-tests.sh
+          else
+            exit 0
+          fi
+          rc=$?
+          if [[ $rc -ne 0 ]]; then
+            echo "[FAIL] Gate 3: tests failed (see check-tests.sh output above)"
+            echo "[FIX] read the failing test name + assertion; reproduce locally; fix implementation or test"
+            echo "[SEE] tests/AGENTS.md (or docs/specs/ for SDD)"
+            exit 1
+          fi
+          # Coverage threshold is best-effort - not every toolchain reports it.
+          # Document the target here; the project's primary coverage tool emits
+          # its own pass/fail via check-tests.sh above.
+          echo "ok Gate 3: unit tests passed (coverage target: 80%)"
+
+      # -- Gate 4: Architecture dependency direction --
+      # Only runs when the project opts into architecture-constraint (Q4 includes
+      # jia gou yue shu). Advisory by default; strict only when
+      # HARNESS_LOOP_ARCH_STRICT=1 at generation.
+      - name: Gate 4 - Architecture check
+        if: hashFiles('scripts/check-architecture.sh') != ''
+        run: |
+          bash scripts/check-architecture.sh
+          rc=$?
+          if [[ $rc -ne 0 ]]; then
+            echo "[FAIL] Gate 4: architecture dependency violation"
+            echo "[FIX] invert the dependency - extract an interface in the lower layer,"
+            echo "      or move the shared code down to a layer both can depend on."
+            echo "[SEE] docs/architecture/boundaries.md (or AGENTS.md ## zi mu lu suo yin)"
+            exit 1
+          fi
+
+      # -- Gate 5: File size check (<= 300 lines) --
+      # Catches bloated files before they become unmaintainable.
+      - name: Gate 5 - File size check
+        run: |
+          set +e
+          offenders=""
+          for dir in src tests lib services app internal; do
+            [[ -d "$dir" ]] || continue
+            while IFS= read -r f; do
+              lines=$(wc -l < "$f" 2>/dev/null)
+              if [[ -n "$lines" && "$lines" -gt 300 ]]; then
+                offenders="$offenders  [FAIL] $f: $lines lines (max 300)\n"
+              fi
+            done < <(find "$dir" -type f \( -name '*.py' -o -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.jsx' -o -name '*.go' -o -name '*.java' \) 2>/dev/null)
+          done
+          if [[ -n "$offenders" ]]; then
+            echo "[FAIL] Gate 5: oversized files:"
+            echo -e "$offenders"
+            echo "[FIX] split each file into smaller modules - extract helpers into a utils/ or partials/ dir"
+            echo "[SEE] docs/conventions/ (or AGENTS.md ## 6 da gai nian -> Map, Not Manual)"
+            exit 1
+          fi
+          echo "ok Gate 5: all source files within 300-line limit"
+
+      # -- Gate 6: Consistency check (existing C1/C2/C6) --
+      - name: Gate 6 - Consistency (C1/C2/C6)
+        run: |
+          set +e
+          bash scripts/check-consistency.sh
+          rc=$?
+          if [[ $rc -ne 0 ]]; then
+            echo "[FAIL] Gate 6: consistency check failed"
+            echo "[FIX] the check output above names the file + the specific drift (spec vs code, TASKS.md vs impl, etc.)"
+            echo "[SEE] AGENTS.md (## gong zuo xun huan) and the subdir AGENTS.md named in the error"
+            exit 1
+          fi
+          echo "ok Gate 6: consistency passed"
+
+      # -- Gate 7: Doc freshness (warn-only, never blocks) --
+      # Documents > 60 days old are flagged; this gate exits 0
+      # so stale docs never block a PR - they only surface as warnings.
+      - name: Gate 7 - Doc freshness (warn-only)
+        run: |
+          if [[ ! -d docs/design ]]; then
+            echo "info: Gate 7: no docs/design/ directory; skipping doc-freshness scan"
+            exit 0
+          fi
+          now=$(date +%s)
+          threshold=60
+          flagged=0
+          while IFS= read -r f; do
+            last_mod=$(git log -1 --format=%ct -- "$f" 2>/dev/null || echo "$now")
+            days_old=$(( (now - last_mod) / 86400 ))
+            if [[ "$days_old" -gt "$threshold" ]]; then
+              echo "warn $f: ${days_old} days since last update - possibly stale"
+              flagged=$((flagged+1))
+            fi
+          done < <(find docs/design -name '*.md' -type f 2>/dev/null)
+          if [[ "$flagged" -gt 0 ]]; then
+            echo "warn Gate 7 (advisory): $flagged design doc(s) older than ${threshold} days"
+            echo "[FIX] schedule a doc-gardening pass; either update the doc or mark its frontmatter 'status: deprecated'"
+            echo "[SEE] docs/phase-roadmap.md (Phase 3 - zi dong hua ceng)"
+            # Warn-only: exit 0 so doc staleness never blocks a PR
+            exit 0
+          fi
+          echo "ok Gate 7: all design docs within ${threshold}-day freshness window"

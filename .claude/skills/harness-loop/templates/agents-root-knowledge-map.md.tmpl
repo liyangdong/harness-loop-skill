@@ -1,0 +1,94 @@
+<!--
+  Layout B: Knowledge-map AGENTS.md (AGENTS-referrence.md style).
+  Best for application/library projects with hierarchical knowledge structure.
+  Placeholders consumed: same as agents-root.md.tmpl (layout A) plus:
+    {{QUICK_NAV}}  - bullet list of "你想做什么 → 去哪里看" pointers
+-->
+# {{PROJECT_NAME}}
+
+{{MISSION_ONE_LINER}}
+{{HYBRID_CALLOUT}}
+
+## 项目简介
+
+{{MISSION_ONE_LINER}}
+
+## 技术栈
+
+- 语言: {{LANGUAGE}}
+- 方法论: 见下文「工作循环」
+
+## 项目结构图
+
+```
+{{PROJECT_NAME}}/
+├── AGENTS.md                  # 本文件 — 项目知识入口
+├── TASKS.md                   # 当前任务清单
+├── state/                     # 迭代状态 + 熵账本
+├── scripts/                   # check-*.sh 机械检查
+├── docs/
+│   ├── architecture/          # 架构层（稳定）
+│   ├── conventions/           # 条约层（开发/门禁/安全/测试规范）
+│   ├── design/                # 设计层（按功能组织）
+│   └── plans/                 # 计划层（频繁变）
+├── tests/  features/  docs/specs/  docs/domain/   # 方法论产物（见 Q2）
+└── concepts/                  # 学习档案（见 Q6）
+```
+
+## 知识地图导航
+
+第一级索引：
+
+| 类别 | 去哪里看 |
+|---|---|
+| 架构 | docs/architecture/overview.md |
+| 条约（第二级索引） | docs/conventions/README.md |
+| 工具知识 | docs/conventions/README.md#工具 |
+| 功能知识 | docs/design/ |
+
+条约（第二级索引）：
+
+- 开发规范 — docs/conventions/naming.md, docs/conventions/error-handling.md
+- 门禁检查规范（lint 规则）— scripts/check-*.sh（详见下文「机械化检查」）
+- 安全规范 — docs/conventions/SECURITY.md（项目自填）
+- 测试规范（三级索引）— docs/conventions/testing.md
+  - 单元测试 — tests/AGENTS.md
+  - 集成测试 — tests/AGENTS.md#integration
+  - E2E 测试 — features/AGENTS.md（如适用）
+
+## 6 大概念
+
+{{CONCEPTS_BLOCK}}
+
+## Ralph 信条
+
+{{RALPH_TENETS_BLOCK}}
+
+## 工作循环
+
+{{METHODOLOGY_BLOCK}}
+
+## 约束限制（机械化检查）
+
+{{CHECKS_INDEX}}
+
+{{ENTRY_POINT_BLOCK}}
+
+## loop
+
+每轮迭代：
+1. 读 `TASKS.md` 取任务
+2. 实施
+3. 跑入口脚本验证
+4. 更新 `state/iteration.md`
+5. 命中 `<promise>DONE</promise>` 即收尾
+
+## 当前任务
+
+{{TASKS_POINTER}}
+
+## 严格度
+
+本仓库采用 **{{STRICT_MODE_DECL}}** 模式。
+- strict: 任何检查失败阻断 commit/merge
+- advisory: 仅警告不阻断

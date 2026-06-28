@@ -1,0 +1,38 @@
+---
+last_updated: 1970-01-01T00:00:00+00:00
+status: draft
+owner: TBD
+---
+
+# Module Boundaries & Dependency Rules
+
+> This document defines what each module may depend on. `scripts/check-architecture.sh`
+> enforces the rules listed here; edit both together.
+
+## Allowed dependency direction
+
+```
+{{LAYER_ORDER}}
+```
+
+Higher-index layers may import from lower-index layers. The reverse is a
+violation.
+
+## Forbidden patterns
+
+| From | To | Why | Fix |
+|---|---|---|---|
+| ui/ | repo/ | UI must not touch data access directly | Route through runtime/ or service/ |
+| repo/ | service/ | Repo must not depend on business logic | Extract an interface in repo/, implement in service/ |
+| any layer | console.log | Use structured logging | Replace with the project logger |
+
+## Exemptions
+
+Document any legitimate cross-layer call here with a reason + a tracking
+issue. The architecture check ignores files matching the patterns in its
+exemption list (configure in `scripts/check-architecture.sh` if needed).
+
+## References
+
+- Architecture overview: `docs/architecture/overview.md`
+- Conventions: `docs/conventions/README.md`

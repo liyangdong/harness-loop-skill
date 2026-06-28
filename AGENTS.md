@@ -395,16 +395,13 @@ is verified against it, not against the author's intent.
 
 docs/specs/ — spec writing conventions (see docs/specs/AGENTS.md)
 concepts/ — 6 core concepts (learning archive)
-state/ — iteration + entropy logs (see state/AGENTS.md)
-scripts/ — check-consistency.sh and friends (see scripts/AGENTS.md)
 
 ## 机械化检查
 
 - scripts/check-consistency.sh — runs C1/C2/C6 checks
-(No check-tests.sh: Q3=非代码, no test runner)
+(No check-tests.sh: Q4 didn't include 外部验证)
 
-入口：`./scripts/check-tests.sh`（验证完成度）
-     `./scripts/check-consistency.sh`（验证仓库一致性）
+入口：`./scripts/check-consistency.sh`（验证仓库一致性）
 
 ## 当前任务
 

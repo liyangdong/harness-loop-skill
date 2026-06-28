@@ -1,0 +1,32 @@
+---
+last_updated: 1970-01-01T00:00:00+00:00
+status: active
+owner: TBD
+---
+
+# Coding Conventions
+
+> Index of project conventions. Each convention lives in its own file so the
+> agent can load only what's relevant to the current task.
+
+| Convention | File | Enforced by |
+|---|---|---|
+| Naming | `naming.md` | linter + `check-architecture.sh` |
+| Error handling | `error-handling.md` | unit tests + linter |
+| Testing | `testing.md` | `check-tests.sh` (Gate 3) |
+| Logging | `logging.md` | linter (`no-console` rule) |
+| API calls | (add as needed) | custom linter rule |
+
+## How to add a new convention
+
+1. Write the rule as a sentence in a new file under `docs/conventions/`.
+2. If CI can check it, write the check (`scripts/check-*.sh` or a linter rule).
+3. Add a row to the table above.
+
+If a rule can't be mechanically checked, it's a Guideline — put it in a
+separate section so agents know it's soft.
+
+## References
+
+- Architecture: `docs/architecture/overview.md`
+- Plans: `docs/plans/current-sprint.md`

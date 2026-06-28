@@ -165,6 +165,9 @@ Q4_MECHANISMS = {
     "卡死检测": {
         "scripts/check-stuck.sh": "checks/check-stuck.sh.tmpl",
     },
+    "架构约束": {
+        "scripts/check-architecture.sh": "checks/check-architecture.sh.tmpl",
+    },
 }
 
 
@@ -364,7 +367,7 @@ def build_methodology_block(methodologies: list[str]) -> str:
     return "\n\n---\n\n".join(parts)
 
 
-def build_subdir_index(methodologies: list[str], q3_token: str, q7: str) -> str:
+def build_subdir_index(methodologies: list[str], q3_token: str, q6: str) -> str:
     """
     Generate the {{SUBDIR_INDEX}} block listing each generated subdir.
 
@@ -394,7 +397,7 @@ def build_subdir_index(methodologies: list[str], q3_token: str, q7: str) -> str:
     # between snapshots; we surface it in the L2 diff rather than silently
     # picking one behavior. Current renderer includes concepts/ when Q7=生成
     # (matches java-hybrid).
-    if q7 == "生成":
+    if q6 == "生成":
         lines.append("concepts/ — 6 core concepts (learning archive)")
     return "\n".join(lines) if lines else ""
 
@@ -419,6 +422,8 @@ def build_checks_index(q4: list[str]) -> str:
         lines.append("- scripts/check-entropy.sh — scans for TODO/FIXME and large files")
     if "卡死检测" in q4:
         lines.append("- scripts/check-stuck.sh — compares last K iterations for progress")
+    if "架构约束" in q4:
+        lines.append("- scripts/check-architecture.sh — checks layered dependency direction (C7)")
     if "外部验证" not in q4:
         lines.append("(No check-tests.sh: Q4 didn't include 外部验证)")
     return "\n".join(lines)
@@ -535,6 +540,33 @@ def build_primary_check_script(q4: list[str]) -> str:
     return "check-consistency.sh"
 
 
+def build_quick_nav(methodologies: list[str], q3_token: str) -> str:
+    """
+    Build the {{QUICK_NAV}} block — a list of "你想做什么 → 去哪里看" pointers
+    used by layout B (knowledge-map) and layout C (quick-nav) AGENTS.md
+    templates. Mirrors the cnblogs best-practice quick-nav pattern.
+
+    Empty string when no docs/ structure is generated (i.e., layout A
+    projects — the block stays unused and the placeholder is harmless
+    because layout A's template doesn't reference it).
+    """
+    lines = []
+    lines.append("- 了解系统架构 → docs/architecture/overview.md")
+    lines.append("- 了解模块边界 → docs/architecture/boundaries.md")
+    lines.append("- 了解编码规范 → docs/conventions/README.md")
+    if "TDD" in methodologies:
+        lines.append(f"- 了解 {q3_token} 测试 → tests/AGENTS.md")
+    if "SDD" in methodologies:
+        lines.append("- 了解 Spec 流程 → docs/specs/AGENTS.md")
+    if "BDD" in methodologies:
+        lines.append("- 了解 BDD 场景 → features/AGENTS.md")
+    if "DDD" in methodologies:
+        lines.append("- 了解领域模型 → docs/domain/AGENTS.md")
+    lines.append("- 运行检查 → scripts/check-tests.sh, scripts/check-consistency.sh")
+    lines.append("- 当前迭代 → state/iteration.md")
+    return "\n".join(lines)
+
+
 # ---------------------------------------------------------------------------
 # Main rendering entry point.
 # ---------------------------------------------------------------------------
@@ -550,9 +582,8 @@ def render(answers: dict, out_dir: Path) -> None:
     q3_token = normalize_q3(q3_raw)
     q4 = answers.get("Q4", [])
     q5 = answers.get("Q5")
-    q6 = answers.get("Q6", "claude-sonnet-4-6")
-    q7 = answers.get("Q7", "生成")
-    q8 = answers.get("Q8", "strict")
+    q6 = answers.get("Q6", "生成")  # learning archive (生成/不生成)
+    q7 = answers.get("Q7", "strict")  # strictness (strict/advisory)
     project_name = answers.get("PROJECT_NAME") or "harness-loop-project"
     mission_one_liner = answers.get("MISSION_ONE_LINER") or Q1_MISSIONS.get(q1, "")
 
@@ -573,7 +604,7 @@ def render(answers: dict, out_dir: Path) -> None:
         stuck_threshold = str(q5)
 
     # Strict mode normalization.
-    strict_mode = "strict" if q8 == "strict" else "advisory"
+    strict_mode = "strict" if q7 == "strict" else "advisory"
 
     # Language-specific constants for Java pom.xml.
     group_id = "com.example"
@@ -592,6 +623,14 @@ def render(answers: dict, out_dir: Path) -> None:
     # copy-and-fill template.
     feature_name = answers.get("FEATURE_NAME") or "<feature-name>"
 
+    # PROJECT_LAYOUT selects the root AGENTS.md template.
+    #   A (default) = map-mode (current behavior; concepts blocks + subdir index)
+    #   B           = knowledge-map (AGENTS-referrence.md style, hierarchical)
+    #   C           = quick-nav (cnblogs style; minimal root + docs/ structure)
+    project_layout = (answers.get("PROJECT_LAYOUT") or "A").upper()
+    if project_layout not in ("A", "B", "C"):
+        project_layout = "A"
+
     # --- Build the global substitution map -------------------------------
     subs: dict[str, str] = {
         "{{PROJECT_NAME}}":             project_name,
@@ -599,7 +638,7 @@ def render(answers: dict, out_dir: Path) -> None:
         "{{CONCEPTS_BLOCK}}":           build_concepts_block(),
         "{{RALPH_TENETS_BLOCK}}":       build_ralph_tenets_block(),
         "{{METHODOLOGY_BLOCK}}":        build_methodology_block(methodologies) if methodologies else "",
-        "{{SUBDIR_INDEX}}":             build_subdir_index(methodologies, q3_token, q7),
+        "{{SUBDIR_INDEX}}":             build_subdir_index(methodologies, q3_token, q6),
         "{{CHECKS_INDEX}}":             build_checks_index(q4),
         "{{ENTRY_POINT_BLOCK}}":        build_entry_point_block(q4),
         "{{HYBRID_CALLOUT}}":           build_hybrid_callout(q2, methodologies),
@@ -611,12 +650,24 @@ def render(answers: dict, out_dir: Path) -> None:
         "{{STRICT_MODE}}":              strict_mode,
         "{{LANGUAGE}}":                 q3_token,
         "{{LANGUAGE_SPECIFIC_IGNORES}}": build_language_ignores(q3_token),
-        "{{MODEL_ID}}":                 q6,
         "{{MAX_ITERATIONS}}":           os.environ.get("HARNESS_LOOP_MAX_ITERATIONS", "30"),
         "{{PROMISE_TOKEN}}":            os.environ.get("HARNESS_LOOP_PROMISE_TOKEN", "DONE"),
         "{{STUCK_THRESHOLD}}":          stuck_threshold,
         "{{SOURCE_EXT}}":               Q3_SOURCE_EXT.get(q3_token, "*"),
         "{{TODO_THRESHOLD}}":           os.environ.get("HARNESS_LOOP_TODO_THRESHOLD", "20"),
+        # Architecture-check placeholders (Task 2). Layer order is a space-separated
+        # string of layer dir names, low-level first; the script converts to positional
+        # indices and reports violations when higher-index layers are imported from
+        # lower-index source dirs. Source dir defaults to src/ (overridable). Strict
+        # mode is OFF by default — architecture violations are advisory even in strict
+        # projects unless HARNESS_LOOP_ARCH_STRICT=1 is set at generation time.
+        "{{LAYER_ORDER}}":              os.environ.get("HARNESS_LOOP_LAYER_ORDER", "types config repo service runtime ui"),
+        "{{SOURCE_DIR}}":               os.environ.get("HARNESS_LOOP_SOURCE_DIR", "src"),
+        "{{ARCH_STRICT}}":              "strict" if os.environ.get("HARNESS_LOOP_ARCH_STRICT") == "1" else "advisory",
+        # Multi-gate CI thresholds (Task 2). All default-tunable via env at gen time.
+        "{{MAX_FILE_LINES}}":           os.environ.get("HARNESS_LOOP_MAX_FILE_LINES", "300"),
+        "{{COVERAGE_THRESHOLD}}":       os.environ.get("HARNESS_LOOP_COVERAGE_THRESHOLD", "80"),
+        "{{DOC_FRESHNESS_DAYS}}":       os.environ.get("HARNESS_LOOP_DOC_FRESHNESS_DAYS", "60"),
         "{{TIMESTAMP}}":                timestamp,
         "{{PROGRESS_SIG}}":             "initial",
         "{{LAST_ACTION}}":              "loop bootstrap",
@@ -633,13 +684,23 @@ def render(answers: dict, out_dir: Path) -> None:
         "{{CHECKSTYLE_FAILS_ON_ERROR}}": checkstyle_fails,
         # SDD spec template placeholder.
         "{{FEATURE_NAME}}":            feature_name,
+        # Layout B/C: quick-nav block (only used by those templates; layout A ignores).
+        "{{QUICK_NAV}}":               build_quick_nav(methodologies, q3_token),
     }
 
     out_dir.mkdir(parents=True, exist_ok=True)
 
     # --- Always-generated files ------------------------------------------
-    # AGENTS.md (root)
-    agents_root = render_template("agents-root.md.tmpl", subs)
+    # AGENTS.md (root). Template chosen by PROJECT_LAYOUT in answers.json:
+    #   A (default) → agents-root.md.tmpl           (map-mode)
+    #   B           → agents-root-knowledge-map.md.tmpl
+    #   C           → agents-root-quick-nav.md.tmpl (+ docs/ structure emitted below)
+    agents_tmpl = {
+        "A": "agents-root.md.tmpl",
+        "B": "agents-root-knowledge-map.md.tmpl",
+        "C": "agents-root-quick-nav.md.tmpl",
+    }[project_layout]
+    agents_root = render_template(agents_tmpl, subs)
     write_output(out_dir, "AGENTS.md", agents_root)
 
     # TASKS.md
@@ -653,10 +714,6 @@ def render(answers: dict, out_dir: Path) -> None:
     # state/entropy-log.md (snapshots always include this regardless of Q4)
     entropy_md = render_template("scaffolding/state-entropy.tmpl", subs)
     write_output(out_dir, "state/entropy-log.md", entropy_md)
-
-    # .opencode/config.json
-    opencode = render_template("scaffolding/opencode-config.json.tmpl", subs)
-    write_output(out_dir, ".opencode/config.json", opencode)
 
     # README.md (appended section)
     readme = render_template("scaffolding/readme-section.tmpl", subs)
@@ -676,6 +733,20 @@ def render(answers: dict, out_dir: Path) -> None:
     write_output(out_dir, "docs/AGENTS.md",
                  strip_leading_html_comment(
                      read_template("scaffolding/always-dirs/docs-agents.md.tmpl")))
+
+    # docs/phase-roadmap.md — always emitted. The 3-phase rollout guide is
+    # referenced by the root AGENTS.md and the multi-gate CI doc-freshness gate.
+    phase_roadmap = render_template("scaffolding/docs-structure/phase-roadmap.md.tmpl", subs)
+    write_output(out_dir, "docs/phase-roadmap.md", phase_roadmap)
+
+    # Layout C: emit the full docs/ structure (architecture/, conventions/,
+    # design/, plans/) per the cnblogs best-practices guide.
+    if project_layout == "C":
+        docs_struct_src = TEMPLATES_DIR / "scaffolding" / "docs-structure"
+        for sub in ["architecture", "conventions", "design", "plans"]:
+            src_sub = docs_struct_src / sub
+            if src_sub.is_dir():
+                render_scaffolding_tree(src_sub, out_dir / "docs" / sub, subs)
 
     # --- Q4 mechanism files ----------------------------------------------
     for mechanism in q4:
@@ -722,7 +793,7 @@ def render(answers: dict, out_dir: Path) -> None:
                 render_scaffolding_tree(src, out_dir / output_dir, subs)
 
     # --- Q7: concepts/ scaffolding ---------------------------------------
-    if q7 == "生成":
+    if q6 == "生成":
         concepts_src = TEMPLATES_DIR / "concepts"
         concepts_dst = out_dir / "concepts"
         concepts_dst.mkdir(parents=True, exist_ok=True)

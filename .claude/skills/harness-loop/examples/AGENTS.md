@@ -15,18 +15,21 @@ files a generated user repo would contain on day one:
 - `TASKS.md`, `state/iteration.md`, `state/entropy-log.md`
 - `scripts/check-tests.sh`, `scripts/check-consistency.sh`
 - `.githooks/pre-commit`, `.github/workflows/consistency.yml`
-- `.opencode/config.json`
 - Methodology-specific subdir (e.g. `tests/` for TDD/Java, `docs/specs/` for SDD)
 - `concepts/01-…md` through `concepts/06-…md` (verbatim copies)
 - `answers.json` — the answer set that produced this snapshot
 
+Note: the skill is agent-neutral — no tool-specific config file
+(`.opencode/config.json`, `.cursor/config.json`, etc.) is generated. Any
+agents.md-compatible tool reads `AGENTS.md` directly.
+
 ## 2. The three examples
 
-| Example | Q2 method | Q3 lang | Q7 mode | Q8 strict | Purpose |
+| Example | Q2 method | Q3 lang | Q6 archive | Q7 strict | Purpose |
 |---|---|---|---|---|---|
 | `java-tdd` | TDD | Java | 生成 | strict | TDD + Maven/JUnit5 baseline. Used as the canonical "happy path" example. |
-| `java-sdd` | SDD | Java | 生成 | strict | Spec-Driven: emits `docs/specs/` first, then code. |
-| `java-hybrid` | hybrid | Java | 生成 | advisory | Multi-methodology project that mixes TDD + DDD and uses advisory mode. |
+| `java-sdd` | SDD | Java | 生成 | advisory | Spec-Driven: emits `docs/specs/` first, then code. Advisory mode. |
+| `java-hybrid` | hybrid (SDD+TDD) | Java | 生成 | strict | Multi-methodology project that mixes SDD + TDD. |
 
 ## 3. How examples differ
 

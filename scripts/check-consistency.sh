@@ -116,7 +116,6 @@ check_c2() {
 # ----------------------------------------------------------------------
 # C6: methodology-required subdirs must each carry an AGENTS.md.
 # Reads methodology from state/iteration.md; falls back to common dirs.
-# Non-code project: expected dirs gracefully skipped when absent.
 # ----------------------------------------------------------------------
 check_c6() {
   local methodology=""

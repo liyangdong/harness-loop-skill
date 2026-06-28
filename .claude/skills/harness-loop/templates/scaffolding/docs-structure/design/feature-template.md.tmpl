@@ -1,0 +1,57 @@
+---
+last_updated: 1970-01-01T00:00:00+00:00
+status: draft
+owner: TBD
+---
+
+# Feature: [功能名称]
+
+> Copy this template to `docs/design/feature-<name>.md` before starting work.
+> Status emoji: 📝 Draft | 📋 Approved | 🚧 In Progress | ✅ Implemented
+
+## Status: 📝 Draft
+
+## 目标
+
+One sentence describing what problem this feature solves.
+
+## 非目标
+
+Explicitly list what this feature does NOT do. Prevents scope creep.
+
+## 技术方案
+
+### 涉及的模块
+
+- `types/`: new types for X
+- `service/`: new business logic for X
+- `ui/`: new page for X
+
+### 数据模型变更
+
+```sql
+-- Add any schema migrations here.
+```
+
+### API 变更
+
+```
+POST /api/xxx
+  Request:  { ... }
+  Response: { ... }
+```
+
+## 验收标准
+
+- [ ] Criterion 1 — specific, verifiable
+- [ ] Criterion 2 — specific, verifiable
+- [ ] Coverage ≥ 80% on new code
+
+## 依赖
+
+- Depends on `feature-auth` (✅ Implemented)
+
+## References
+
+- Architecture: `docs/architecture/overview.md`
+- Boundaries: `docs/architecture/boundaries.md`

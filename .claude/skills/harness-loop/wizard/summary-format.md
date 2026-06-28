@@ -1,8 +1,8 @@
 # Config Summary Format
 
-After collecting all 8 answers (Q1-Q8), render this template with the answers
+After collecting all 7 answers (Q1-Q7), render this template with the answers
 substituted in, and print it to the user. **Wait for `Y/n` before writing any
-files** (per SKILL.md step 8). Only proceed on explicit `Y`; on `n` or any other
+files** (per SKILL.md step 7). Only proceed on explicit `Y`; on `n` or any other
 reply, discard all collected answers and exit cleanly.
 
 ## Template
@@ -15,9 +15,8 @@ reply, discard all collected answers and exit cleanly.
 **语言/技术栈**: {{Q3}}
 **验证机制**: {{Q4_list_comma_separated}}
 **卡死阈值**: {{Q5_or_default_3}}{{Q5_skip_note_if_not_applicable}}
-**opencode 模型**: {{Q6}}
-**学习档案目录**: {{Q7_action}}
-**严格度**: {{Q8}}
+**学习档案目录**: {{Q6_action}}
+**严格度**: {{Q7}}
 
 **将创建的文件**:
 {{created_files_as_bullets}}
@@ -39,9 +38,8 @@ reply, discard all collected answers and exit cleanly.
 - **`{{Q5_or_default_3}}`** — the integer chosen in Q5 if asked; otherwise the
   literal string `3 (默认)`. Append `{{Q5_skip_note_if_not_applicable}}` as
   ` (未启用卡死检测，仅文档化)` when Q4 does not include `卡死检测`.
-- **`{{Q6}}`** — verbatim model ID string.
-- **`{{Q7_action}}`** — `生成 concepts/ 目录` if 生成; `不生成 concepts/` if 不生成.
-- **`{{Q8}}`** — `strict` or `advisory`.
+- **`{{Q6_action}}`** — `生成 concepts/ 目录` if 生成; `不生成 concepts/` if 不生成.
+- **`{{Q7}}`** — `strict` or `advisory`.
 
 ## File list rules
 
@@ -57,7 +55,6 @@ Use this format (one bullet per file, sorted by path):
 - scripts/check-consistency.sh
 - .githooks/pre-commit
 - .github/workflows/consistency.yml
-- .opencode/config.json
 - tests/AGENTS.md
 - tests/pom.xml
 - tests/src/test/java/FirstTest.java
@@ -103,7 +100,6 @@ separately to make patches visible to the user before approval:
 **语言/技术栈**: Java
 **验证机制**: 完成信号、外部验证、检查点
 **卡死阈值**: 3 (默认) (未启用卡死检测，仅文档化)
-**opencode 模型**: claude-sonnet-4-6
 **学习档案目录**: 生成 concepts/ 目录
 **严格度**: strict
 
@@ -111,6 +107,7 @@ separately to make patches visible to the user before approval:
 - AGENTS.md
 - TASKS.md
 - state/iteration.md
+- state/entropy-log.md
 - state/AGENTS.md
 - scripts/AGENTS.md
 - docs/AGENTS.md
@@ -119,7 +116,6 @@ separately to make patches visible to the user before approval:
 - scripts/check-consistency.sh
 - .githooks/pre-commit
 - .github/workflows/consistency.yml
-- .opencode/config.json
 - tests/AGENTS.md
 - tests/pom.xml
 - tests/src/test/java/FirstTest.java

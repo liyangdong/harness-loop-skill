@@ -1,8 +1,8 @@
-# wizard/questions.md — the 8-question AskUserQuestion script
+# wizard/questions.md — the 7-question AskUserQuestion script
 
 > This file is the standalone script for the harness-loop wizard. Read top to bottom,
-> execute Q1→Q8 in order. Each block contains everything needed to call AskUserQuestion
-> (or to handle the free-text variants Q5/Q6). Answers feed `decision-tree.md`.
+> execute Q1→Q7 in order. Each block contains everything needed to call AskUserQuestion
+> (or to handle the free-text variant Q5). Answers feed `decision-tree.md`.
 >
 > Parallel calls allowed for independent questions per SKILL.md step 1; the dependency
 > notes below state exactly when one question gates another.
@@ -80,6 +80,7 @@
   - label: "检查点", description: "check-consistency.sh + .githooks/pre-commit + .github/workflows/consistency.yml。本地 + CI 双重门控。"
   - label: "熵扫描", description: "check-entropy.sh + state/entropy-log.md。周期性扫描累积偏差。"
   - label: "卡死检测", description: "check-stuck.sh：对比 state/iteration.md 进展字段，连续 K 轮无进展即终止。会触发 Q5。"
+  - label: "架构约束", description: "check-architecture.sh：检查分层依赖方向（types→config→repo→service→runtime→ui 或自定义）。默认 advisory，违反仅警告。"
 - recommended default: ["完成信号", "外部验证", "检查点"]
 
 **Dependencies:** always asked; multiSelect requires at least one option
@@ -109,28 +110,7 @@
 
 ---
 
-## Q6: opencode 模型 ID (model_id)
-
-> Free-text input. Same options-plus-Other pattern as Q5. The user can paste any
-> opencode-supported model ID; we surface the common ones for convenience.
-
-**AskUserQuestion call:**
-- question: "opencode 用哪个模型？模型 ID 会写入 .opencode/config.json。"
-- header: "模型 ID"
-- multiSelect: false
-- options:
-  - label: "claude-sonnet-4-6", description: "默认推荐。平衡能力与成本，适合大多数 harness 任务。"
-  - label: "claude-opus-4-7", description: "最强推理。适合复杂架构 / Hybrid 方法论。"
-  - label: "claude-haiku-4-5", description: "最快最便宜。适合轻量 lint 类任务。"
-  - label: "Other (custom)", description: "输入自定义模型 ID（用户回复字符串，Claude 原样写入 config.json）。"
-- recommended default: "claude-sonnet-4-6"
-
-**Dependencies:** always asked
-**Branch:** the chosen string is written verbatim to .opencode/config.json's model field; no further branching
-
----
-
-## Q7: 学习档案 (learning_archive)
+## Q6: 学习档案 (learning_archive)
 
 **AskUserQuestion call:**
 - question: "是否生成本项目的学习档案？会把 6 大概念笔记模板复制到 concepts/，让本项目也成为可被 agent 学习的档案。"
@@ -146,7 +126,7 @@
 
 ---
 
-## Q8: 严格程度 (strictness)
+## Q7: 严格程度 (strictness)
 
 **AskUserQuestion call:**
 - question: "检查脚本失败时的行为？strict 会阻断 commit/merge，advisory 只警告。"
@@ -164,6 +144,6 @@
 
 ## Post-question step
 
-After Q8 is answered, render `wizard/summary-format.md` with all 8 answers and print the
+After Q7 is answered, render `wizard/summary-format.md` with all 7 answers and print the
 configuration summary. Wait for explicit `Y` confirmation before writing any files
-(SKILL.md step 8). On `n` or abort, discard all collected answers and exit cleanly.
+(SKILL.md step 7). On `n` or abort, discard all collected answers and exit cleanly.

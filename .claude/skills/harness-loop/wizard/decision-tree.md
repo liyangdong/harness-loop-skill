@@ -1,6 +1,6 @@
 # Decision Tree: answers → templates
 
-> Map from each wizard answer (Q1-Q8) to the concrete template files rendered, the
+> Map from each wizard answer (Q1-Q7) to the concrete template files rendered, the
 > placeholders substituted, and the output paths written into the user's project.
 > Keep this file in sync with `questions.md` — any option added/removed there MUST
 > be reflected here in the same commit (per `wizard/AGENTS.md` §4).
@@ -35,9 +35,9 @@ Notes:
 
 ---
 
-## Always-generated subdir AGENTS.md (independent of Q1-Q8)
+## Always-generated subdir AGENTS.md (independent of Q1-Q7)
 
-Regardless of Q1-Q8 answers, the wizard always renders three subdir
+Regardless of Q1-Q7 answers, the wizard always renders three subdir
 `AGENTS.md` files. These describe directories that every harness-loop
 project contains, so the templates are answer-independent and live under
 `templates/scaffolding/always-dirs/`:
@@ -83,7 +83,7 @@ note and spec §5.3.1). For each selected methodology `M`:
 1. **Directory coexistence**: copy `M`'s scaffolding directory into the project.
    E.g., SDD + TDD produces both `docs/specs/` and `tests/`.
 2. **AGENTS.md section order**: in the root AGENTS.md `## 工作循环` section,
-   inject methodology blocks in this priority order (highest first):
+   inject methodology blocks in this priority orders (highest first):
    `SDD > TDD > BDD > DDD > RDD`. Rationale: spec-first (what to build) precedes
    impl-first (how to build).
 3. **Conflict resolution**: when two methodologies' rules conflict, the
@@ -152,15 +152,20 @@ or `<project>/.github/workflows/`.
 | 检查点 | `scripts/check-consistency.sh` + `.githooks/pre-commit` + `.github/workflows/consistency.yml` | `templates/checks/check-consistency.sh.tmpl`, `templates/checks/pre-commit.tmpl`, `templates/checks/consistency.yml.tmpl` |
 | 熵扫描 | `scripts/check-entropy.sh` + `state/entropy-log.md` | `templates/checks/check-entropy.sh.tmpl`, `templates/scaffolding/state-entropy.tmpl` |
 | 卡死检测 | `scripts/check-stuck.sh` (triggers Q5) | `templates/checks/check-stuck.sh.tmpl` |
+| 架构约束 | `scripts/check-architecture.sh` (warn-only by default unless Q7=strict AND `HARNESS_LOOP_ARCH_STRICT=1`) | `templates/checks/check-architecture.sh.tmpl` |
 
 Notes:
 - The `pre-commit` hook calls *every* `check-*.sh` that exists in `scripts/`,
   regardless of Q4 selection (so adding a check later just works). Q4 only
   drives *which scripts are written initially*.
 - The `consistency.yml` GitHub Actions workflow mirrors `pre-commit` and runs
-  on push/PR for controlled paths.
+  on push/PR for controlled paths. It is a multi-gate pipeline (type/lint/test/
+  coverage/architecture/file-size/consistency/doc-freshness) — see the template.
 - If `卡死检测` is NOT selected, Q5 is skipped entirely and `check-stuck.sh`
   is NOT generated.
+- `架构约束` always generates `check-architecture.sh`; the script runs in
+  advisory (warn-only) mode unless the user opts into strict enforcement via
+  the `HARNESS_LOOP_ARCH_STRICT=1` env var at generation time.
 
 ---
 
@@ -178,50 +183,30 @@ informationally and `check-stuck.sh` is not generated at all.
 
 Substitutes into:
 - `templates/checks/check-stuck.sh.tmpl` (the comparison threshold)
-- `templates/scaffolding/opencode-config.json.tmpl` (`loop.stuck_threshold`)
 
 If Q4 does NOT include `卡死检测`:
 - Q5 is not asked
-- `{{STUCK_THRESHOLD}}` is set to `3` (default) but only used in
-  `opencode-config.json.tmpl` for documentation purposes; `check-stuck.sh` is
+- `{{STUCK_THRESHOLD}}` is set to `3` (default) but `check-stuck.sh` is
   not generated.
 
 ---
 
-## Q6 (model ID) → `{{MODEL_ID}}` substitution
+## Q6 (learning archive) → concepts/ scaffolding
 
-Free-text input; written verbatim into the project's `.opencode/config.json`.
-
-| Q6 answer | `{{MODEL_ID}}` value |
-|---|---|
-| claude-sonnet-4-6 (default) | `claude-sonnet-4-6` |
-| claude-opus-4-7 | `claude-opus-4-7` |
-| claude-haiku-4-5 | `claude-haiku-4-5` |
-| Other (custom) | (user-provided string, written verbatim — no validation) |
-
-Substitutes into:
-- `templates/scaffolding/opencode-config.json.tmpl` (top-level `model` field)
-
-No further branching.
-
----
-
-## Q7 (learning archive) → concepts/ scaffolding
-
-| Q7 answer | Action |
+| Q6 answer | Action |
 |---|---|
 | 生成 | Copy every file in `templates/concepts/` (except `AGENTS.md`) into `<project>/concepts/`. Resulting files: `concepts/01-repo-as-truth.md` through `concepts/06-entropy-gc.md`. The project becomes a learnable archive itself. |
 | 不生成 | Skip — do not create `<project>/concepts/`. Only generate engineering files (AGENTS.md, scripts/, state/, etc.). |
 
 Note: the 6 concept files are ALSO always concatenated into the root AGENTS.md's
-`{{CONCEPTS_BLOCK}}` section, regardless of Q7. Q7 only controls whether they're
+`{{CONCEPTS_BLOCK}}` section, regardless of Q6. Q6 only controls whether they're
 *also* exported as standalone files for other agents to learn from.
 
 ---
 
-## Q8 (strict mode) → `{{STRICT_MODE}}` substitution
+## Q7 (strict mode) → `{{STRICT_MODE}}` substitution
 
-| Q8 answer | `{{STRICT_MODE}}` value | Behavior in generated check scripts |
+| Q7 answer | `{{STRICT_MODE}}` value | Behavior in generated check scripts |
 |---|---|---|
 | strict (default) | `strict` | `set -e` semantics on failures; exit 1 on any check failure; `pre-commit` blocks the commit; `consistency.yml` fails the PR check |
 | advisory | `advisory` | Failures print `⚠️` warning to stderr; exit 0 always; `pre-commit` allows commit; `consistency.yml` posts a comment but does not block |
@@ -243,29 +228,34 @@ library. If a placeholder appears in a `.tmpl` file, it MUST be listed here.
 
 | Placeholder | Source | Substituted into (template files) |
 |---|---|---|
-| `{{PROJECT_NAME}}` | User input (asked inline after Q8 if not provided) or `basename $(git rev-parse --show-toplevel)` fallback | `agents-root.md.tmpl`, `tasks-md.tmpl`, README snippet |
+| `{{PROJECT_NAME}}` | User input (asked inline after Q7 if not provided) or `basename $(git rev-parse --show-toplevel)` fallback | `agents-root.md.tmpl`, `tasks-md.tmpl`, README snippet |
 | `{{MISSION_ONE_LINER}}` | From Q1: contents of the selected mission fragment file | `agents-root.md.tmpl` |
-| `{{CONCEPTS_BLOCK}}` | Concatenation of `templates/concepts/01-06*.md` (always all 6, regardless of Q7) | `agents-root.md.tmpl` |
+| `{{CONCEPTS_BLOCK}}` | Concatenation of `templates/concepts/01-06*.md` (always all 6, regardless of Q6) | `agents-root.md.tmpl` |
 | `{{RALPH_TENETS_BLOCK}}` | Contents of `templates/ralph-tenets.md` | `agents-root.md.tmpl` |
 | `{{METHODOLOGY_BLOCK}}` | From Q2: contents of the selected methodology file(s); for Hybrid, concatenated in priority order SDD > TDD > BDD > DDD > RDD | `agents-root.md.tmpl` |
-| `{{SUBDIR_INDEX}}` | Generated from Q2/Q3/Q7 selections (list of generated subdirectories with one-line purposes) | `agents-root.md.tmpl` |
+| `{{SUBDIR_INDEX}}` | Generated from Q2/Q3/Q6 selections (list of generated subdirectories with one-line purposes) | `agents-root.md.tmpl` |
 | `{{CHECKS_INDEX}}` | Generated from Q4 selections (list of generated check scripts with one-line purposes) | `agents-root.md.tmpl` |
 | `{{TASKS_POINTER}}` | Constant: `"见 TASKS.md。每轮迭代更新 state/iteration.md。"` | `agents-root.md.tmpl` |
 | `{{STRICT_MODE_DECL}}` | Same value as `{{STRICT_MODE}}` (kept as a separate token so the declaration section can be reworded without touching scripts) | `agents-root.md.tmpl` (the `## 严格度` section) |
-| `{{STRICT_MODE}}` | Q8 | All `check-*.sh.tmpl`, `pre-commit.tmpl`, `readme-section.tmpl` |
+| `{{STRICT_MODE}}` | Q7 | All `check-*.sh.tmpl`, `pre-commit.tmpl`, `readme-section.tmpl` |
 | `{{LANGUAGE}}` | Q3 | `check-tests.sh.tmpl`, `check-entropy.sh.tmpl`, `gitignore.tmpl` |
 | `{{LANGUAGE_SPECIFIC_IGNORES}}` | Derived from Q3 (see Q3 table above) | `gitignore.tmpl` |
-| `{{MODEL_ID}}` | Q6 | `opencode-config.json.tmpl` |
-| `{{MAX_ITERATIONS}}` | Constant default `30` (overridable via env var `HARNESS_LOOP_MAX_ITERATIONS` at generation time) | `opencode-config.json.tmpl`, `state-iteration.tmpl` |
-| `{{PROMISE_TOKEN}}` | Constant `"DONE"` (overridable via env var `HARNESS_LOOP_PROMISE_TOKEN` at generation time) | `check-promise.sh.tmpl`, `opencode-config.json.tmpl` |
-| `{{STUCK_THRESHOLD}}` | Q5 (or default `3` if Q5 skipped) | `check-stuck.sh.tmpl`, `opencode-config.json.tmpl` |
+| `{{MAX_ITERATIONS}}` | Constant default `30` (overridable via env var `HARNESS_LOOP_MAX_ITERATIONS` at generation time) | `state-iteration.tmpl` |
+| `{{PROMISE_TOKEN}}` | Constant `"DONE"` (overridable via env var `HARNESS_LOOP_PROMISE_TOKEN` at generation time) | `check-promise.sh.tmpl` |
+| `{{STUCK_THRESHOLD}}` | Q5 (or default `3` if Q5 skipped) | `check-stuck.sh.tmpl` |
 | `{{SOURCE_EXT}}` | Derived from Q3: Python→`py`, Node→`ts`, Go→`go`, Java→`java`, others→`*` | `check-entropy.sh.tmpl` (controls which file extensions are scanned) |
 | `{{TODO_THRESHOLD}}` | Constant default `20` (overridable via env var `HARNESS_LOOP_TODO_THRESHOLD`) | `check-entropy.sh.tmpl` |
+| `{{LAYER_ORDER}}` | Derived from Q3 (or overridden via `HARNESS_LOOP_LAYER_ORDER`): default `types→config→repo→service→runtime→ui` (TS/JS), `types→config→repo→service→runtime→ui` (Python), package tiers for Go/Java | `check-architecture.sh.tmpl` |
+| `{{SOURCE_DIR}}` | Default `src/` (overridable via `HARNESS_LOOP_SOURCE_DIR`); ignored when Q3=Non-code | `check-architecture.sh.tmpl` |
+| `{{ARCH_STRICT}}` | `advisory` by default; `strict` only when env `HARNESS_LOOP_ARCH_STRICT=1` (independent of Q7 — architecture violations are advisory even in strict projects unless explicitly opted in) | `check-architecture.sh.tmpl` |
+| `{{MAX_FILE_LINES}}` | Constant default `300` (overridable via env var `HARNESS_LOOP_MAX_FILE_LINES` at generation time) | `consistency.yml.tmpl` (file-size gate) |
+| `{{COVERAGE_THRESHOLD}}` | Constant default `80` (overridable via env var `HARNESS_LOOP_COVERAGE_THRESHOLD` at generation time) | `consistency.yml.tmpl` (coverage gate) |
+| `{{DOC_FRESHNESS_DAYS}}` | Constant default `60` (overridable via env var `HARNESS_LOOP_DOC_FRESHNESS_DAYS` at generation time) | `consistency.yml.tmpl` (doc-freshness gate) |
 | `{{TIMESTAMP}}` | `date -Iseconds` at generation time | `state-iteration.tmpl` |
 | `{{PROGRESS_SIG}}` | Constant `"initial"` for first generation; updated by the loop on each iteration | `state-iteration.tmpl` |
 | `{{LAST_ACTION}}` | Constant `"loop bootstrap"` for first generation | `state-iteration.tmpl` |
-| `{{CURRENT_EPIC_DESCRIPTION}}` | User input (asked inline after Q8 if not provided); fallback: `"(fill in current epic)"` | `tasks-md.tmpl` |
-| `{{SUBTASK_N}}` | User input (asked inline after Q8 if not provided); fallback: `"- [ ] (define subtask N)"` for N=1..3 | `tasks-md.tmpl` |
+| `{{CURRENT_EPIC_DESCRIPTION}}` | User input (asked inline after Q7 if not provided); fallback: `"(fill in current epic)"` | `tasks-md.tmpl` |
+| `{{SUBTASK_N}}` | User input (asked inline after Q7 if not provided); fallback: `"- [ ] (define subtask N)"` for N=1..3 | `tasks-md.tmpl` |
 | `{{SUBDIR_PATH}}` / `{{SUBDIR_PURPOSE}}` / `{{SUBDIR_CONVENTIONS}}` / `{{SUBDIR_RELATED_CHECKS}}` | Per-subdirectory values derived from Q2/Q3 | `agents-subdir.md.tmpl` (one render per generated subdir) |
 | `{{GROUP_ID}}` / `{{ARTIFACT_ID}}` / `{{VERSION}}` / `{{PACKAGE}}` / `{{CHECKSTYLE_FAILS_ON_ERROR}}` | Java-specific constants: `GROUP_ID=com.example`, `ARTIFACT_ID={{PROJECT_NAME}}`, `VERSION=0.1.0-SNAPSHOT`, `PACKAGE=com.example.{{lowercase PROJECT_NAME}}`, `CHECKSTYLE_FAILS_ON_ERROR=true` (advisory mode → `false`) | `tests-java/pom.xml.tmpl`, `tests-java/src/test/java/FirstTest.java.tmpl` |
 | `{{FEATURE_NAME}}` | User input (asked inline when SDD is selected): the human-readable name of the feature the spec describes, e.g., "User Authentication". Falls back to the spec filename's slug title-cased if the user does not provide one. | `specs/template.md` (the H1 of the generated spec) |
@@ -273,7 +263,7 @@ library. If a placeholder appears in a `.tmpl` file, it MUST be listed here.
 | `{{ENTRY_POINT_BLOCK}}` | Q4-conditional: when `外部验证` ∈ Q4, both `check-tests.sh` and `check-consistency.sh` entry-point lines; otherwise only `check-consistency.sh`. Added in issue 004. | `agents-root.md.tmpl` (the `入口：` block) |
 | `{{MANUAL_CHECKS}}` | Q4-conditional: bash lines for the README "manually run checks" section. Includes `bash scripts/check-tests.sh` only when `外部验证` ∈ Q4; always includes `bash scripts/check-consistency.sh`. Added in issue 004. | `readme-section.tmpl` |
 | `{{PRIMARY_CHECK_SCRIPT}}` | Q4-conditional filename for the TASKS.md "check off after `scripts/X` passes" bullet. `check-tests.sh` when `外部验证` ∈ Q4, else `check-consistency.sh`. Added in issue 004. | `tasks-md.tmpl` |
-| `{{STRICT_MODE_DESC}}` | Q8-conditional phrase for the README strict-mode line. `strict` → `"failures block commits"`; `advisory` → `"failures warn but do not block"`. Added in issue 004. | `readme-section.tmpl` |
+| `{{STRICT_MODE_DESC}}` | Q7-conditional phrase for the README strict-mode line. `strict` → `"failures block commits"`; `advisory` → `"failures warn but do not block"`. Added in issue 004. | `readme-section.tmpl` |
 
 ### Substitution semantics
 
@@ -289,7 +279,7 @@ library. If a placeholder appears in a `.tmpl` file, it MUST be listed here.
 
 ## Output path computation
 
-Given an answer set (Q1-Q8), the set of files written into the user's project
+Given an answer set (Q1-Q7), the set of files written into the user's project
 is computed as follows. `summary-format.md` enumerates exactly this set before
 the user confirms.
 
@@ -297,7 +287,8 @@ the user confirms.
 - `AGENTS.md` (rendered from `agents-root.md.tmpl`)
 - `TASKS.md` (from `tasks-md.tmpl`)
 - `state/iteration.md` (from `state-iteration.tmpl`)
-- `.opencode/config.json` (from `opencode-config.json.tmpl`)
+- `state/entropy-log.md` (from `state-entropy.tmpl`; informational baseline,
+  always present so entropy GC has a place to write from day one)
 - `README.md` (snippet appended from `readme-section.tmpl`)
 - `.gitignore` (lines appended from `gitignore.tmpl`)
 - `state/AGENTS.md` (from `templates/scaffolding/always-dirs/state-agents.md.tmpl`)
@@ -309,11 +300,19 @@ the user confirms.
 - Per Q4 selected → corresponding `scripts/check-*.sh` (and hooks/CI if 检查点)
 - Per Q3 ≠ Non-code → `tests-{{Q3}}/` scaffolding (only if Q2 ∈ {TDD, Hybrid with TDD})
 - Per Q5 (only if Q4 includes 卡死检测) → `scripts/check-stuck.sh`
-- Per Q7 = 生成 → `concepts/01-06*.md` (6 files)
-- Per Q4 includes 熵扫描 → `state/entropy-log.md`
+- Per Q6 = 生成 → `concepts/01-06*.md` (6 files)
+- Per Q4 includes 熵扫描 → `state/entropy-log.md` (already always written; Q4 only
+  decides whether `check-entropy.sh` runs against it)
 
 **Backup rule (spec §5.6):** if any output path already exists in the project
 on first generation, the existing file is renamed to `<path>.bak` before the
-new file is written. On re-runs (idempotency mode), `AGENTS.md`, `scripts/*.sh`,
-and `.opencode/config.json` are overwritten; `TASKS.md`, `state/iteration.md`,
-README user-sections, and `.gitignore` user-lines are preserved.
+new file is written. On re-runs (idempotency mode), `AGENTS.md`, `scripts/*.sh`
+are overwritten; `TASKS.md`, `state/iteration.md`, README user-sections, and
+`.gitignore` user-lines are preserved.
+
+**Note on agent configuration:** This skill is agent-neutral. It does NOT
+generate any agent-specific config file (no `.opencode/config.json`,
+`.cursor/config.json`, `.codex/config.json`, etc.). Any agents.md-compatible
+tool reads `AGENTS.md` directly. Users wanting tool-specific tuning (model
+selection, sandboxing, permission whitelists) configure that out-of-band;
+the harness system itself relies only on the universal `AGENTS.md` contract.

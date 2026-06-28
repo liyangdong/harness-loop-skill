@@ -1,10 +1,6 @@
-# harness-loop-skill
-
-A project-level Claude Code skill that generates harness-engineering constraint systems via an interactive wizard.
-
 ## How the AI agent works on this repo
 
-This repo uses an [agents.md](https://agents.md)-compatible constraint system. The AI agent (opencode or similar) follows:
+This repo uses an [agents.md](https://agents.md)-compatible constraint system. The AI agent (Claude Code, opencode, Codex CLI, Cursor, Gemini CLI, or any agents.md-compatible tool) follows:
 
 1. **Root entry**: reads `AGENTS.md` (~100 lines) for project mission, 6 concepts, Ralph tenets, and pointers to deeper rules.
 2. **Progressive disclosure**: when entering a subdirectory, reads that subdir's `AGENTS.md` for local rules.
@@ -21,12 +17,14 @@ git config core.hooksPath .githooks
 ### To manually run checks
 
 ```
-bash scripts/check-tests.sh
 bash scripts/check-consistency.sh
 ```
 
-### To start a loop iteration (if using opencode)
+### To start a loop iteration
+
+Whatever agent you use — point it at `AGENTS.md` and it will work:
 
 ```
-opencode  # reads AGENTS.md, works on TASKS.md, writes state/iteration.md
+# Claude Code / opencode / Codex CLI / Cursor / Gemini CLI / etc.
+# Start the agent in this repo; it reads AGENTS.md, works on TASKS.md, writes state/iteration.md
 ```
