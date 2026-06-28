@@ -1,12 +1,11 @@
 # AGENTS.md — templates/checks/
 
-> Conventions for every `check-*.sh.tmpl` file. Unlike the markdown templates
-> one level up, these are NOT rendered from fragments — they are COPIED verbatim
-> into the target repo's `scripts/` directory, with only `{{STRICT_MODE}}`
-> substituted at copy time. They are the mechanical enforcement layer for the
-> generated knowledge base: L1 (static), L3 (anchor verification), L4 (drift
-> recompute). A broken check is worse than no check: it trains the agent to
-> ignore failures.
+> Conventions for every `check-*.sh.tmpl`. Unlike the markdown templates one
+> level up, these are NOT rendered from fragments — they are COPIED verbatim
+> into the target repo's `scripts/` dir, with only `{{STRICT_MODE}}` substituted
+> at copy time. They are the enforcement layer for the generated KB: L1
+> (static), L3 (anchors), L4 (drift). A broken check trains the agent to ignore
+> failures — worse than no check.
 
 ## 1. File shape
 
@@ -20,31 +19,26 @@ Every `check-*.sh.tmpl` MUST start with exactly:
 set -uo pipefail
 ```
 
-Notes:
 - `set -uo pipefail` only. NEVER `set -e` — we accumulate `FAIL` and decide exit
   at the end so the agent sees every problem in one run.
-- `{{STRICT_MODE}}` substitutes to `strict` or `advisory` at COPY time (when the
-  skill writes `scripts/check-*.sh` into the target repo), not at render time.
-  It is the ONLY placeholder allowed in these files.
-- Quote every variable expansion (`"$FOO"`) — `set -u` makes unquoted undefined
-  vars fatal; word-splitting on paths with spaces is a footgun.
+- `{{STRICT_MODE}}` substitutes to `strict`/`advisory` at COPY time (when the
+  skill writes `scripts/check-*.sh` into the target), not at render time. It is
+  the ONLY placeholder allowed in these files.
+- Quote every expansion (`"$FOO"`) — `set -u` makes unquoted undefined vars
+  fatal; word-splitting on paths with spaces is a footgun.
 
 ## 2. Output format
 
-Every check emits one of two lines per outcome:
-
+Per outcome, emit one of:
 - Success: `✅ <check-id> passed` (or `✅ <check-id>: <short note>`)
-- Failure (two lines):
-  ```
-  ❌ <check-id> <what failed>
-     修复: <concrete fix instruction>
-  ```
+- Failure (two lines): `❌ <check-id> <what failed>` then
+  `   修复: <concrete fix instruction>`.
 
-`<check-id>` is the constraint identifier (e.g. `K1`, `L3`, `L4b`). Fix rules: §6.
+`<check-id>` is the constraint id (e.g. `K1`, `L3`, `L4b`). Fix rules: §6.
 
 ## 3. Strict vs advisory branching
 
-Every template ends with the same tail shape:
+Every template ends with:
 
 ```bash
 if [[ "$FAIL" -gt 0 ]]; then
@@ -57,48 +51,44 @@ fi
 echo "✅ L<n>: all checks passed"; exit 0
 ```
 
-- `strict`: non-zero exit blocks commit and CI.
-- `advisory`: same output, zero exit, commit proceeds.
-- `{{STRICT_MODE}}` is baked in at copy time; do not branch on it anywhere except
-  the tail block (and the early-exit guards when a prerequisite file is missing).
+`strict`: non-zero exit blocks commit/CI. `advisory`: same output, zero exit.
+Only branch on `{{STRICT_MODE}}` in this tail block (and early-exit guards when
+a prerequisite file is missing).
 
 ## 4. Where they run & codegraph dependency
 
-- These scripts run IN the target repo, against the generated KB. They assume the
-  cwd is the KB output dir (where `KNOWLEDGE.md`, `domains/`, `drift.md`,
-  `.meta/` live).
-- **L3 and L4 require codegraph** (`codegraph explore`) for anchor verification
-  and blindspot recompute. They MUST warn-and-skip (exit 0 with a `⚠️` message)
-  if either the `codegraph` CLI is missing or `.codegraph/` is absent. Never
-  hard-fail just because codegraph isn't installed — the KB is still useful
-  without it; L1 (static) is codegraph-free and always runs.
-- All paths are relative to the KB root. Never hardcode `/Users/...` or `C:\...`;
+- Run IN the target repo, cwd = KB output dir (where `KNOWLEDGE.md`,
+  `domains/`, `drift.md`, `.meta/` live).
+- **L3 and L4 require codegraph** (`codegraph explore`). They MUST warn-and-skip
+  (exit 0 with a `⚠️` message) if either the `codegraph` CLI or `.codegraph/` is
+  absent — never hard-fail just because codegraph isn't installed; the KB is
+  still useful. L1 (static) is codegraph-free and always runs.
+- Paths are relative to the KB root. Never hardcode `/Users/...` or `C:\...`;
   use forward slashes (bash on Windows handles them fine).
 
 ## 5. Composition rules
 
-- A check template owns exactly one layer (L1 static / L3 anchors / L4 drift).
-  Do not nest L3 logic inside the L1 template or vice versa.
-- Each script is runnable standalone: `bash scripts/check-foo.sh` exits non-zero
-  on failure, zero on pass. The skill's own self-check (in `.claude/skills/
-  knowledge-map/scripts/`) may call these after generation, but they do not
-  source one another.
+- A check template owns exactly one layer (L1 / L3 / L4). Do not nest L3 logic
+  inside the L1 template or vice versa.
+- Each script is standalone: `bash scripts/check-foo.sh` exits non-zero on
+  failure, zero on pass. They never source one another.
 
-## 6. Lint error message requirements
+## 6. Error message requirements
 
-Every error message MUST embed (1) the check id, (2) the offending file or value,
+Every error MUST embed (1) the check id, (2) the offending file or value,
 (3) a one-line Chinese fix instruction (`修复: ...`).
 
 - Bad:  `❌ anchor failed`
 - Good: `❌ L3: anchor not resolved: AuthService.login` /
         `   修复: codegraph 重建索引，或更新 .meta/anchors.json 中该锚点`
-- If you cannot write a concrete fix instruction, the check is too vague —
-  redefine it or drop it.
+
+If you cannot write a concrete fix instruction, the check is too vague —
+redefine it or drop it.
 
 ## 7. Self-verification
 
-Before committing a `check-*.sh.tmpl`, substitute `{{STRICT_MODE}}` and
-bash-syntax-check the result; a template that produces invalid bash is a bug.
+Before committing, substitute `{{STRICT_MODE}}` and bash-syntax-check the
+result; a template producing invalid bash is a bug:
 
 ```bash
 sed 's/{{STRICT_MODE}}/advisory/g' check-foo.sh.tmpl > /tmp/check.sh

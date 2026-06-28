@@ -6,6 +6,7 @@
 # <templates-dir> defaults to this script's ../templates/.
 
 set -uo pipefail
+trap 'rm -f "$TMP" "$TMP.2"' EXIT
 
 FRAG_DIR="${1:?usage: render-kb.sh <fragments-dir> <output-dir> [templates-dir]}"
 OUT_DIR="${2:?usage: render-kb.sh <fragments-dir> <output-dir> [templates-dir]}"
@@ -37,10 +38,13 @@ substitute() {
       }
     }
     {
-      while (index($0, open) > 0) {
-        sub(open, content, $0)
+      line = $0
+      out = ""
+      while ((p = index(line, open)) > 0) {
+        out = out substr(line, 1, p-1) content
+        line = substr(line, p + length(open))
       }
-      print
+      print out line
     }
   '
 }
@@ -76,6 +80,7 @@ while IFS= read -r row; do
   parse_row "$row"
   [[ "$M_SCOPE" == "global" ]] || continue
   [[ -z "$M_PLACEHOLDER" ]] && continue
+  [[ -f "$FRAG_DIR/$M_PATH" ]] || echo "⚠️  render: fragment not found: $FRAG_DIR/$M_PATH" >&2
   substitute "$M_PLACEHOLDER" "$FRAG_DIR/$M_PATH" < "$TMP" > "$TMP.2"; mv "$TMP.2" "$TMP"
 done < "$MANIFEST"
 mv "$TMP" "$OUT_DIR/KNOWLEDGE.md"
@@ -88,6 +93,7 @@ while IFS= read -r row; do
   parse_row "$row"
   [[ "$M_SCOPE" == "drift" ]] || continue
   [[ -z "$M_PLACEHOLDER" ]] && continue
+  [[ -f "$FRAG_DIR/$M_PATH" ]] || echo "⚠️  render: fragment not found: $FRAG_DIR/$M_PATH" >&2
   substitute "$M_PLACEHOLDER" "$FRAG_DIR/$M_PATH" < "$TMP" > "$TMP.2"; mv "$TMP.2" "$TMP"
 done < "$MANIFEST"
 mv "$TMP" "$OUT_DIR/drift.md"
@@ -102,6 +108,7 @@ for did in $DOMAIN_IDS; do
     parse_row "$row"
     [[ "$M_SCOPE" == "domain" && "$M_ID" == "$did" ]] || continue
     [[ -z "$M_PLACEHOLDER" ]] && continue
+    [[ -f "$FRAG_DIR/$M_PATH" ]] || echo "⚠️  render: fragment not found: $FRAG_DIR/$M_PATH" >&2
     substitute "$M_PLACEHOLDER" "$FRAG_DIR/$M_PATH" < "$TMP" > "$TMP.2"; mv "$TMP.2" "$TMP"
   done < "$MANIFEST"
   mv "$TMP" "$OUT_DIR/domains/$did.md"
