@@ -65,6 +65,11 @@ shells only** — they document the shape of H5a's output for readers and for te
 `.meta/`. Do not add `{{PLACEHOLDER}}` tokens to them expecting render-time
 substitution; their placeholders exist purely to mark shape, not for the renderer.
 
+> `.meta/sources.json` and `.meta/anchors.json` are written directly by harvest
+> H5a (structured JSON), not rendered from templates. The `meta-*.tmpl` files
+> here are reference shells documenting their shape. `render-kb.sh` does NOT
+> regenerate them — it copies H5a's output verbatim.
+
 ## 6. Subdir AGENTS.md
 
 `checks/` has its own `AGENTS.md` describing in-target check script conventions
