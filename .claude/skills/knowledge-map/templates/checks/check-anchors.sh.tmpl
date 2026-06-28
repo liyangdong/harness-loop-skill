@@ -26,7 +26,7 @@ RESOLVED=0; STALE=0; MISSING=0
 SYMBOLS=$(grep -oE '"symbol"[[:space:]]*:[[:space:]]*"[^"]+"' "$ANCHORS" | sed -E 's/.*"symbol"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/' | sort -u)
 
 for sym in $SYMBOLS; do
-  if codegraph explore "$sym" --project "$PROJECT_PATH" >/dev/null 2>&1; then
+  if codegraph explore "$sym" --path "$PROJECT_PATH" >/dev/null 2>&1; then
     RESOLVED=$((RESOLVED+1))
   else
     echo "❌ L3: anchor not resolved: $sym"
