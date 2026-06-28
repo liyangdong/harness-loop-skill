@@ -1,0 +1,9 @@
+{
+  "Q1_repo_path": "D:/project/lucene-main/lucene-main/lucene",
+  "Q2_deepwiki_url": "https://deepwiki.com/apache/lucene",
+  "Q3_project_path": "D:/project/lucene-main/lucene-main/lucene",
+  "Q4_output_dir": ".claude/skills/knowledge-map/examples/lucene",
+  "Q5_subsystems": ["indexing", "search", "index-data-structures", "analysis", "build-release"],
+  "Q6_depth": "medium",
+  "Q7_strict": "advisory"
+}
