@@ -1,0 +1,2 @@
+- **索引入口**：`core/src/java/org/apache/lucene/index/IndexWriter.java` → `IndexWriter`（线程安全的写入主入口，协调文档摄取、段管理、合并）
+- **搜索入口**：`core/src/java/org/apache/lucene/search/IndexSearcher.java` → `IndexSearcher`（线程安全的查询执行器，跨段并行搜索、缓存、收集结果）

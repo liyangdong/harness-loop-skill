@@ -1,0 +1,2 @@
+- orphan：无（所有概念簇锚点均 RESOLVED）
+- blindspot：`MergeTrigger`（core/src/java/org/apache/lucene/index/MergeTrigger.java:23，98 callers）—— 合并触发枚举，未被 deepwiki 概念簇单独覆盖（见 drift.md）

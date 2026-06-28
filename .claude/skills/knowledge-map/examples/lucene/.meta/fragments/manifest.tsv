@@ -1,0 +1,49 @@
+global		MISSION	overview-mission.md
+global		TOPOLOGY	knowledge-topology.md
+global		DRIFT_SUMMARY	drift-summary.md
+global		ENTRY_POINTS	entry-points.md
+global		PROJECT_STRUCTURE	overview-structure.md
+global		REGEN_NOTE	regen-note.md
+drift		REGEN_TIMESTAMP	regen-timestamp.txt
+drift		ORPHANS_TABLE	orphans-table.md
+drift		BLINDSPOTS_TABLE	blindspots-table.md
+domain	indexing	DOMAIN_NAME	indexing-name.txt
+domain	indexing	DEEPWIKI_URL	indexing-url.txt
+domain	indexing	STATUS	indexing-status.txt
+domain	indexing	NARRATIVE	indexing-narrative.md
+domain	indexing	CONCEPTS	indexing-concepts.md
+domain	indexing	ANCHORS_TABLE	indexing-anchors.md
+domain	indexing	DOMAIN_DRIFT	indexing-drift.md
+domain	indexing	CROSS_LINKS	indexing-crosslinks.md
+domain	search	DOMAIN_NAME	search-name.txt
+domain	search	DEEPWIKI_URL	search-url.txt
+domain	search	STATUS	search-status.txt
+domain	search	NARRATIVE	search-narrative.md
+domain	search	CONCEPTS	search-concepts.md
+domain	search	ANCHORS_TABLE	search-anchors.md
+domain	search	DOMAIN_DRIFT	search-drift.md
+domain	search	CROSS_LINKS	search-crosslinks.md
+domain	index-data-structures	DOMAIN_NAME	index-data-structures-name.txt
+domain	index-data-structures	DEEPWIKI_URL	index-data-structures-url.txt
+domain	index-data-structures	STATUS	index-data-structures-status.txt
+domain	index-data-structures	NARRATIVE	index-data-structures-narrative.md
+domain	index-data-structures	CONCEPTS	index-data-structures-concepts.md
+domain	index-data-structures	ANCHORS_TABLE	index-data-structures-anchors.md
+domain	index-data-structures	DOMAIN_DRIFT	index-data-structures-drift.md
+domain	index-data-structures	CROSS_LINKS	index-data-structures-crosslinks.md
+domain	analysis	DOMAIN_NAME	analysis-name.txt
+domain	analysis	DEEPWIKI_URL	analysis-url.txt
+domain	analysis	STATUS	analysis-status.txt
+domain	analysis	NARRATIVE	analysis-narrative.md
+domain	analysis	CONCEPTS	analysis-concepts.md
+domain	analysis	ANCHORS_TABLE	analysis-anchors.md
+domain	analysis	DOMAIN_DRIFT	analysis-drift.md
+domain	analysis	CROSS_LINKS	analysis-crosslinks.md
+domain	build-release	DOMAIN_NAME	build-release-name.txt
+domain	build-release	DEEPWIKI_URL	build-release-url.txt
+domain	build-release	STATUS	build-release-status.txt
+domain	build-release	NARRATIVE	build-release-narrative.md
+domain	build-release	CONCEPTS	build-release-concepts.md
+domain	build-release	ANCHORS_TABLE	build-release-anchors.md
+domain	build-release	DOMAIN_DRIFT	build-release-drift.md
+domain	build-release	CROSS_LINKS	build-release-crosslinks.md

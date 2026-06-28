@@ -1,0 +1,2 @@
+- orphan：无
+- blindspot：无（本领域为文件级锚点，均经存在性验证为 RESOLVED）

@@ -1,0 +1,10 @@
+{
+  "repo": "D:/project/lucene-main/lucene-main/lucene",
+  "repoName": "lucene",
+  "deepwikiRoot": "https://deepwiki.com/apache/lucene",
+  "projectPath": "D:/project/lucene-main/lucene-main/lucene",
+  "generatedAt": "2026-06-28",
+  "depth": "medium",
+  "strict": "advisory",
+  "domains": ["indexing", "search", "index-data-structures", "analysis", "build-release"]
+}

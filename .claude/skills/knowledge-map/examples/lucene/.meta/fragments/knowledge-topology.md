@@ -1,0 +1,5 @@
+- **Indexing System** → domains/indexing.md — 4 concept clusters, 7 anchors (7✅)
+- **Search System** → domains/search.md — 4 concept clusters, 10 anchors (10✅)
+- **Index Data Structures** → domains/index-data-structures.md — 6 concept clusters, 8 anchors (8✅)
+- **Analysis System** → domains/analysis.md — 3 concept clusters, 7 anchors (7✅)
+- **Build and Release System** → domains/build-release.md — 4 concept clusters, 3 anchors (3✅)

@@ -1,0 +1,1 @@
+构建与发布系统管理 Lucene 多模块 Gradle 项目的编译、依赖、测试、代码质量、文档与发布流程。Gradle Wrapper（`gradlew`/`gradlew.bat`）提供一致的构建环境；`settings.gradle` 定义所有项目模块；`gradle/libs.versions.toml` 集中化版本声明；`dev-tools/scripts/` 下的 Python 脚本（`buildAndPushRelease.py`、`releaseWizard.py`、`addVersion.py`）处理发布流程。

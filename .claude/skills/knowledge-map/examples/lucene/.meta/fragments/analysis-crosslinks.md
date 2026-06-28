@@ -1,0 +1,1 @@
+- → indexing.md（Analyzer 产出的 token 流由 IndexingChain/DWPT 在索引时消费，写入倒排索引）

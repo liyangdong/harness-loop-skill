@@ -1,0 +1,2 @@
+- → index-data-structures.md（DWPT flush 产出段，段由 CodecReader/SegmentReader 读取；合并由 SegmentMerger 操作索引数据结构）
+- → search.md（IndexWriter 通过 getReader 提供 NRT 视图给 IndexSearcher/LeafReader）

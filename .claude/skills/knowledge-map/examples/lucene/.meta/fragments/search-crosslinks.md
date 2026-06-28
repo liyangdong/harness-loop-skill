@@ -1,0 +1,2 @@
+- → index-data-structures.md（搜索读取 LeafReader/CodecReader 暴露的 Terms、PostingsEnum、DocValues、PointValues、向量值）
+- → indexing.md（IndexSearcher 依赖 IndexReader，而 IndexReader 由 IndexWriter 的段产出 / NRT getReader 提供）

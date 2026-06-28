@@ -1,0 +1,1 @@
+搜索系统对已索引段执行查询并返回结果。入口 `IndexSearcher` 是线程安全的协调器：先重写查询（`Query.rewrite`）、与缓存层交互（`QueryCache`/`QueryCachingPolicy`），再通过 `TaskExecutor` 在 `LeafSlice[]` 上并发执行。每个段独立搜索，结果由 `Collector` 收集并合并为最终 `TopDocs`。默认相似度为 BM25。

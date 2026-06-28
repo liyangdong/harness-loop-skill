@@ -1,0 +1,121 @@
+{
+  "overview": {
+    "mission": "Apache Lucene 是高性能、全功能的全文搜索引擎库（纯 Java）。提供构建搜索应用的 API 和核心组件，以段（segment）为基础架构：数据存入不可变段，后台周期性合并。两条主线：IndexWriter 把文档写入可搜索数据结构，IndexSearcher 查询这些结构。",
+    "projectStructure": "| 模块类别 | 关键模块 | 用途 |\n| --- | --- | --- |\n| 核心 | lucene:core, lucene:core.tests | 基础索引与搜索 API |\n| 分析 | lucene:analysis:common, lucene:analysis:icu | 文本处理与语言支持 |\n| 专用 | lucene:spatial3d, lucene:queries | 领域特定功能 |\n| 工具 | lucene:luke, lucene:demo | GUI 工具与示例 |\n| 基础设施 | lucene:test-framework, lucene:backward-codecs | 开发与兼容性 |"
+  },
+  "domains": [
+    {
+      "id": "indexing",
+      "name": "Indexing System",
+      "deepwikiUrl": "https://deepwiki.com/apache/lucene/2-indexing-system",
+      "concepts": [
+        { "name": "IndexWriter 协调入口", "description": "客户端线程安全的索引 API 入口：addDocument/updateDocument/deleteDocuments/commit/flush/forceMerge/close。每次修改返回序列号保证串行化顺序。" },
+        { "name": "DocumentsWriter 与每线程写入器（DWPT）", "description": "DocumentsWriter 编排多个 DWPT 实例，DWPT 在线程本地缓冲文档并通过 IndexingChain 处理。DocumentsWriterPerThreadPool 池化，DocumentsWriterFlushControl 管理内存阈值。" },
+        { "name": "内存管理与 Flush 控制", "description": "基于 RAM 用量或文档数的缓冲写。FlushControl 维护 activeBytes/flushBytes；stall control 在 flush 落后时阻塞索引线程防 OOM。" },
+        { "name": "段合并策略与调度", "description": "MergePolicy 决定合并哪些段（TieredMergePolicy），MergeScheduler 执行（ConcurrentMergeScheduler）。后台合并不阻塞搜索。" }
+      ],
+      "anchors": [
+        { "concept": "IndexWriter 协调入口", "symbol": "IndexWriter", "location": "core/src/java/org/apache/lucene/index/IndexWriter.java", "citedLine": "197", "status": "RESOLVED", "callPath": "addDocument→DocumentsWriter→DWPT", "callerCount": 2222 },
+        { "concept": "DocumentsWriter 与 DWPT", "symbol": "DocumentsWriter", "location": "core/src/java/org/apache/lucene/index/DocumentsWriter.java", "citedLine": "80", "status": "RESOLVED", "callPath": "IndexWriter→DocumentsWriter→DWPT", "callerCount": 0 },
+        { "concept": "DocumentsWriter 与 DWPT", "symbol": "DocumentsWriterPerThread", "location": "core/src/java/org/apache/lucene/index/DocumentsWriterPerThread.java", "citedLine": "52", "status": "RESOLVED", "callPath": "DocumentsWriter→DWPT→IndexingChain", "callerCount": 42 },
+        { "concept": "内存管理", "symbol": "DocumentsWriterFlushControl", "location": "core/src/java/org/apache/lucene/index/DocumentsWriterFlushControl.java", "citedLine": "33", "status": "RESOLVED", "callPath": "DocumentsWriter→FlushControl→DWPT", "callerCount": 12 },
+        { "concept": "段合并策略", "symbol": "MergePolicy", "location": "core/src/java/org/apache/lucene/index/MergePolicy.java", "citedLine": "71", "status": "RESOLVED", "callPath": "IndexWriter→maybeMerge→MergePolicy.findMerges", "callerCount": 0 },
+        { "concept": "段合并调度", "symbol": "MergeScheduler", "location": "core/src/java/org/apache/lucene/index/ConcurrentMergeScheduler.java", "citedLine": "120", "status": "RESOLVED", "callPath": "IndexWriter→MergeScheduler.merge→MergeThread", "callerCount": 0 },
+        { "concept": "IndexWriter 协调入口", "symbol": "IndexingChain", "location": "core/src/java/org/apache/lucene/index/IndexingChain.java", "citedLine": "1", "status": "RESOLVED", "callPath": "DWPT→IndexingChain.processDocument", "callerCount": 0 }
+      ]
+    },
+    {
+      "id": "search",
+      "name": "Search System",
+      "deepwikiUrl": "https://deepwiki.com/apache/lucene/3-search-system",
+      "concepts": [
+        { "name": "IndexSearcher 协调器", "description": "中央类，对 IndexReader 执行查询。线程安全，可单/多线程构造。负责查询重写、缓存、并发、打分（默认 BM25）与结果收集。" },
+        { "name": "查询重写与 Weight/Scorer", "description": "查询迭代重写以简化优化；Weight 封装打分准备，ScorerSupplier 延迟构造，BulkScorer 批量打分。" },
+        { "name": "并发执行（LeafSlice + TaskExecutor）", "description": "段划分为 LeafSlice，TaskExecutor 管理各片并行任务，每片独立 collector，完成后合并。" },
+        { "name": "查询缓存系统", "description": "LRUQueryCache 缓存 (segment,query)→DocIdSet，分区降低锁竞争；UsageTrackingQueryCachingPolicy 按频率与 cost 决定缓存。" }
+      ],
+      "anchors": [
+        { "concept": "IndexSearcher 协调器", "symbol": "IndexSearcher", "location": "core/src/java/org/apache/lucene/search/IndexSearcher.java", "citedLine": "77", "status": "RESOLVED", "callPath": "search→rewrite→createWeight→scorer", "callerCount": 0 },
+        { "concept": "读访问段", "symbol": "IndexReader", "location": "core/src/java/org/apache/lucene/index/IndexReader.java", "citedLine": "1", "status": "RESOLVED", "callPath": "IndexSearcher→IndexReader→leaves()", "callerCount": 0 },
+        { "concept": "读访问段", "symbol": "LeafReader", "location": "core/src/java/org/apache/lucene/index/LeafReader.java", "citedLine": "49", "status": "RESOLVED", "callPath": "IndexReader→LeafReader（单段）", "callerCount": 0 },
+        { "concept": "查询类型", "symbol": "Query", "location": "core/src/java/org/apache/lucene/search/Query.java", "citedLine": "1", "status": "RESOLVED", "callPath": "IndexSearcher.rewrite→Query.rewrite", "callerCount": 0 },
+        { "concept": "Weight/Scorer", "symbol": "Weight", "location": "core/src/java/org/apache/lucene/search/Weight.java", "citedLine": "1", "status": "RESOLVED", "callPath": "IndexSearcher.createWeight→Weight.scorer", "callerCount": 0 },
+        { "concept": "Weight/Scorer", "symbol": "Scorer", "location": "core/src/java/org/apache/lucene/search/Scorer.java", "citedLine": "1", "status": "RESOLVED", "callPath": "Weight.scorer→Scorer.iterator", "callerCount": 0 },
+        { "concept": "结果收集", "symbol": "Collector", "location": "core/src/java/org/apache/lucene/search/Collector.java", "citedLine": "1", "status": "RESOLVED", "callPath": "IndexSearcher.search→LeafCollector→Collector", "callerCount": 0 },
+        { "concept": "查询缓存", "symbol": "LRUQueryCache", "location": "core/src/java/org/apache/lucene/search/LRUQueryCache.java", "citedLine": "86", "status": "RESOLVED", "callPath": "IndexSearcher→QueryCache.doCache→LRUQueryCache", "callerCount": 0 },
+        { "concept": "并发执行", "symbol": "TaskExecutor", "location": "core/src/java/org/apache/lucene/search/TaskExecutor.java", "citedLine": "47", "status": "RESOLVED", "callPath": "IndexSearcher→TaskExecutor.invokeAll→slice tasks", "callerCount": 62 },
+        { "concept": "结果合并", "symbol": "TopDocs", "location": "core/src/java/org/apache/lucene/search/TopDocs.java", "citedLine": "27", "status": "RESOLVED", "callPath": "TopDocs.merge→shard merge", "callerCount": 341 }
+      ]
+    },
+    {
+      "id": "index-data-structures",
+      "name": "Index Data Structures",
+      "deepwikiUrl": "https://deepwiki.com/apache/lucene/4-index-data-structures",
+      "concepts": [
+        { "name": "倒排索引（Terms 与 Postings）", "description": "术语到文档的映射，含位置与频率。Terms/TermsEnum/PostingsEnum。全文检索基础。" },
+        { "name": "DocValues（列式存储）", "description": "面向列的字段值存储，优化排序/分面/聚合。Numeric/Binary/Sorted/SortedNumeric/SortedSet 类型。" },
+        { "name": "BKD 树与点值（PointValues）", "description": "多维数值/空间索引。PointValues/PointTree/IntersectVisitor，BKDWriter 写入。" },
+        { "name": "向量值与 HNSW 图", "description": "高维向量存储（Float/ByteVectorValues），HnswGraph 提供近似最近邻搜索。" },
+        { "name": "段与 Reader 架构", "description": "SegmentReader 读段文件；CodecReader 暴露 codec API；LeafReader 是单段原子读抽象。Parallel/Filter/Sorting 包装实现。" },
+        { "name": "校验与完整性", "description": "CheckIndex 全面校验各组件，checkIntegrity 校验校验和，Status 报告每段健康。支持多线程并行校验。" }
+      ],
+      "anchors": [
+        { "concept": "段与 Reader 架构", "symbol": "CodecReader", "location": "core/src/java/org/apache/lucene/index/CodecReader.java", "citedLine": "32", "status": "RESOLVED", "callPath": "LeafReader→CodecReader→SegmentReader", "callerCount": 164 },
+        { "concept": "段与 Reader 架构", "symbol": "SegmentReader", "location": "core/src/java/org/apache/lucene/index/SegmentReader.java", "citedLine": "1", "status": "RESOLVED", "callPath": "CodecReader→SegmentReader（读单段文件）", "callerCount": 0 },
+        { "concept": "段元数据", "symbol": "SegmentInfos", "location": "core/src/java/org/apache/lucene/index/SegmentInfos.java", "citedLine": "169", "status": "RESOLVED", "callPath": "IndexWriter→SegmentInfos（segments_N）", "callerCount": 4 },
+        { "concept": "段元数据", "symbol": "SegmentInfo", "location": "core/src/java/org/apache/lucene/index/SegmentInfo.java", "citedLine": "185", "status": "RESOLVED", "callPath": "SegmentCommitInfo→SegmentInfo（name/maxDoc/codec）", "callerCount": 0 },
+        { "concept": "BKD 树", "symbol": "BKDWriter", "location": "core/src/java/org/apache/lucene/util/bkd/BKDWriter.java", "citedLine": "1", "status": "RESOLVED", "callPath": "IndexingChain→BKDWriter.write→PointValues", "callerCount": 0 },
+        { "concept": "BKD 树", "symbol": "PointValues", "location": "core/src/java/org/apache/lucene/index/PointValues.java", "citedLine": "1", "status": "RESOLVED", "callPath": "CodecReader.getPointValues→PointValues/PointTree", "callerCount": 0 },
+        { "concept": "向量与 HNSW", "symbol": "HnswGraph", "location": "core/src/java/org/apache/lucene/util/hnsw/HnswGraph.java", "citedLine": "1", "status": "RESOLVED", "callPath": "KnnVectorsReader→HnswGraph（ANN 导航）", "callerCount": 0 },
+        { "concept": "校验完整性", "symbol": "CheckIndex", "location": "core/src/java/org/apache/lucene/index/CheckIndex.java", "citedLine": "103", "status": "RESOLVED", "callPath": "CheckIndex→testFieldInfos/testPostings/testDocValues", "callerCount": 0 }
+      ]
+    },
+    {
+      "id": "analysis",
+      "name": "Analysis System",
+      "deepwikiUrl": "https://deepwiki.com/apache/lucene/5-analysis-system",
+      "concepts": [
+        { "name": "Analyzer 管线入口", "description": "Analyzer 是文本分析入口，封装从读取到产出 token 流的全过程。StandardAnalyzer 预置，CustomAnalyzer.builder() 自定义组装。按线程重用 TokenStreamComponents。" },
+        { "name": "CharFilter / Tokenizer / TokenFilter 链", "description": "CharFilter 预处理字符流；Tokenizer 切分为 token（链首）；TokenFilter 转换 token 流（小写化/词干/停用词/同义词）。" },
+        { "name": "高级过滤与图分析", "description": "ConditionalTokenFilter 按属性动态应用过滤器；GraphTokenFilter 是 FixedShingleFilter/SynonymGraphFilter 基类，产出 token 图供 PhraseQuery 使用。" }
+      ],
+      "anchors": [
+        { "concept": "Analyzer 管线入口", "symbol": "Analyzer", "location": "core/src/java/org/apache/lucene/analysis/Analyzer.java", "citedLine": "97", "status": "RESOLVED", "callPath": "Analyzer→TokenStreamComponents→tokenStream", "callerCount": 0 },
+        { "concept": "Analyzer 管线入口", "symbol": "StandardAnalyzer", "location": "core/src/java/org/apache/lucene/analysis/standard/StandardAnalyzer.java", "citedLine": "34", "status": "RESOLVED", "callPath": "StandardTokenizer→LowerCaseFilter→StopFilter", "callerCount": 0 },
+        { "concept": "Analyzer 管线入口", "symbol": "CustomAnalyzer", "location": "analysis/common/src/java/org/apache/lucene/analysis/custom/CustomAnalyzer.java", "citedLine": "99", "status": "RESOLVED", "callPath": "builder→TokenizerFactory+TokenFilterFactory+CharFilterFactory", "callerCount": 0 },
+        { "concept": "Tokenizer", "symbol": "Tokenizer", "location": "core/src/java/org/apache/lucene/analysis/Tokenizer.java", "citedLine": "1", "status": "RESOLVED", "callPath": "TokenStream→Tokenizer（输入为 Reader）", "callerCount": 0 },
+        { "concept": "TokenFilter", "symbol": "TokenFilter", "location": "core/src/java/org/apache/lucene/analysis/TokenFilter.java", "citedLine": "1", "status": "RESOLVED", "callPath": "TokenStream→TokenFilter（输入为另一 TokenStream）", "callerCount": 0 },
+        { "concept": "CharFilter", "symbol": "CharFilter", "location": "core/src/java/org/apache/lucene/analysis/CharFilter.java", "citedLine": "1", "status": "RESOLVED", "callPath": "Analyzer.initReader→CharFilter（预处理 Reader）", "callerCount": 0 },
+        { "concept": "图分析基类", "symbol": "TokenStream", "location": "core/src/java/org/apache/lucene/analysis/TokenStream.java", "citedLine": "78", "status": "RESOLVED", "callPath": "Analyzer→TokenStream（incrementToken/reset/end/close）", "callerCount": 1399 }
+      ]
+    },
+    {
+      "id": "build-release",
+      "name": "Build and Release System",
+      "deepwikiUrl": "https://deepwiki.com/apache/lucene/11-build-and-release-system",
+      "concepts": [
+        { "name": "构建配置（Gradle 多模块）", "description": "Gradle Wrapper 提供一致构建环境。settings.gradle 定义所有项目模块。template.gradle.properties 提供参数模板。" },
+        { "name": "依赖管理", "description": "gradle/libs.versions.toml 集中化版本声明（依赖、插件），跨模块统一版本控制，版本目录引用。" },
+        { "name": "测试基础设施", "description": "test-framework 模块与测试工具，Jenkins CI 运行 nightly 构建、测试、javadoc 与覆盖率。" },
+        { "name": "发布流程与版本管理", "description": "dev-tools/scripts/ Python 脚本：buildAndPushRelease.py 构建推送，releaseWizard.py 引导，addVersion.py 加版本。Version.MIN_SUPPORTED_MAJOR 控制兼容。" }
+      ],
+      "anchors": [
+        { "concept": "构建配置", "symbol": "settings.gradle", "location": "settings.gradle", "citedLine": "51", "status": "RESOLVED", "callPath": "Gradle 根项目→include 模块", "callerCount": 0 },
+        { "concept": "依赖管理", "symbol": "libs.versions.toml", "location": "gradle/libs.versions.toml", "citedLine": "1", "status": "RESOLVED", "callPath": "各模块 build.gradle→libs.versions.toml（版本目录）", "callerCount": 0 },
+        { "concept": "发布流程", "symbol": "dev-tools/scripts/", "location": "dev-tools/scripts/buildAndPushRelease.py", "citedLine": "1", "status": "RESOLVED", "callPath": "releaseWizard→buildAndPushRelease→addVersion", "callerCount": 0 }
+      ]
+    }
+  ],
+  "drift": {
+    "orphans": [],
+    "blindspots": [
+      {
+        "symbol": "MergeTrigger",
+        "location": "core/src/java/org/apache/lucene/index/MergeTrigger.java:23",
+        "callerCount": 98,
+        "suggestedDomain": "indexing",
+        "reason": "合并触发枚举（FULL_FLUSH/EXPLICIT/MERGE_FINISHED/CLOSING/COMMIT），98 callers，被 ConcurrentMergeScheduler/MergePolicy/FilterMergePolicy 广泛引用，但 deepwiki 概念簇未单独覆盖。"
+      }
+    ]
+  }
+}

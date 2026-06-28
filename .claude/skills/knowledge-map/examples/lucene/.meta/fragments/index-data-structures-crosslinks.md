@@ -1,0 +1,2 @@
+- → indexing.md（这些数据结构由 IndexWriter/DWPT/IndexingChain 在 flush 时产出；合并由 SegmentMerger 聚合）
+- → search.md（搜索通过 LeafReader/CodecReader 读取这些结构：Terms/PostingsEnum/DocValues/PointValues/向量）
