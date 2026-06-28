@@ -15,6 +15,7 @@ Evolve the harness-loop skill: extend methodology/check/language coverage and ha
 ## Done
 
 - [x] T22: Dogfood skill on this project (SDD + non-code + strict) — initial generation
+- [x] knowledge-map skill: agent-first KB from deepwiki + codegraph (lucene baseline)
 
 ## Blocked
 

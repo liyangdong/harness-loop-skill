@@ -101,8 +101,10 @@ The skill ships four verification layers:
 - **L4 — drift report** (`scripts/check-drift.sh`): recompute orphans + blindspots;
   fail (strict, Q7) or warn (advisory) if above threshold. Requires codegraph.
 
-CI runs L1 + L2 (hermetic, no codegraph). Local dev runs L1-L4. L3 and L4 need a
-populated codegraph index at the path from Q3.
+CI runs L1 (`scripts/check-skill.sh`) + L2 (`scripts/check-examples.sh`) — hermetic,
+no codegraph. Local dev additionally runs L3 (`scripts/check-anchors.sh`) + L4
+(`scripts/check-drift.sh`); L3/L4 require the `codegraph` CLI + a populated
+`.codegraph/` index at the path from Q3.
 
 ## Extension guide
 

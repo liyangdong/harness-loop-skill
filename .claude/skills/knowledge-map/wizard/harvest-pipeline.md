@@ -11,6 +11,8 @@
 - Use `webReader` (MCP) to fetch deepwiki pages as markdown.
 - Use `codegraph_explore` (MCP, with `projectPath`) OR shell `codegraph explore "<symbols>"`
   to verify anchors. Both return verbatim source + call-path + blast-radius caller count.
+  Shell form: `codegraph explore "<symbol>" --path <projectPath>` (CLI v1.1.1 uses `--path`,
+  NOT `--project`; the MCP tool `codegraph_explore` uses the `projectPath` parameter instead).
 - Every extracted citation has shape `<repo-relative-path>:<line>` or
   `<path>:<line>-<line>`. Normalize deepwiki's `(path:line)` / `path:line` variants to
   this shape on parse.
@@ -75,7 +77,7 @@ For each citation `(symbol, location, citedLine)` collected in H1 (Core Classes)
 (concept cluster Sources):
 
 1. Query `codegraph explore "<symbol>"` with `projectPath={{Q3}}` (MCP tool) or
-   `codegraph explore "<symbol>" --project "{{Q3}}"` (shell).
+   `codegraph explore "<symbol>" --path "{{Q3}}"` (shell).
 2. Classify the anchor into one of four statuses:
    - **RESOLVED** — the symbol exists in the index. Record its current file + the
      call-path summary codegraph returns + `callerCount` (the blast-radius caller count
