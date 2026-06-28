@@ -15,10 +15,10 @@
         { "name": "段合并策略与调度", "description": "MergePolicy 决定合并哪些段（TieredMergePolicy），MergeScheduler 执行（ConcurrentMergeScheduler）。后台合并不阻塞搜索。" }
       ],
       "anchors": [
-        { "concept": "IndexWriter 协调入口", "symbol": "IndexWriter", "location": "core/src/java/org/apache/lucene/index/IndexWriter.java", "citedLine": "197", "status": "RESOLVED", "callPath": "addDocument→DocumentsWriter→DWPT", "callerCount": 2222 },
+        { "concept": "IndexWriter 协调入口", "symbol": "IndexWriter", "location": "core/src/java/org/apache/lucene/index/IndexWriter.java", "citedLine": "198", "status": "RESOLVED", "callPath": "addDocument→DocumentsWriter→DWPT", "callerCount": 2222 },
         { "concept": "DocumentsWriter 与 DWPT", "symbol": "DocumentsWriter", "location": "core/src/java/org/apache/lucene/index/DocumentsWriter.java", "citedLine": "80", "status": "RESOLVED", "callPath": "IndexWriter→DocumentsWriter→DWPT", "callerCount": 0 },
         { "concept": "DocumentsWriter 与 DWPT", "symbol": "DocumentsWriterPerThread", "location": "core/src/java/org/apache/lucene/index/DocumentsWriterPerThread.java", "citedLine": "52", "status": "RESOLVED", "callPath": "DocumentsWriter→DWPT→IndexingChain", "callerCount": 42 },
-        { "concept": "内存管理", "symbol": "DocumentsWriterFlushControl", "location": "core/src/java/org/apache/lucene/index/DocumentsWriterFlushControl.java", "citedLine": "33", "status": "RESOLVED", "callPath": "DocumentsWriter→FlushControl→DWPT", "callerCount": 12 },
+        { "concept": "内存管理", "symbol": "DocumentsWriterFlushControl", "location": "core/src/java/org/apache/lucene/index/DocumentsWriterFlushControl.java", "citedLine": "44", "status": "RESOLVED", "callPath": "DocumentsWriter→FlushControl→DWPT", "callerCount": 12 },
         { "concept": "段合并策略", "symbol": "MergePolicy", "location": "core/src/java/org/apache/lucene/index/MergePolicy.java", "citedLine": "71", "status": "RESOLVED", "callPath": "IndexWriter→maybeMerge→MergePolicy.findMerges", "callerCount": 0 },
         { "concept": "段合并调度", "symbol": "MergeScheduler", "location": "core/src/java/org/apache/lucene/index/ConcurrentMergeScheduler.java", "citedLine": "120", "status": "RESOLVED", "callPath": "IndexWriter→MergeScheduler.merge→MergeThread", "callerCount": 0 },
         { "concept": "IndexWriter 协调入口", "symbol": "IndexingChain", "location": "core/src/java/org/apache/lucene/index/IndexingChain.java", "citedLine": "1", "status": "RESOLVED", "callPath": "DWPT→IndexingChain.processDocument", "callerCount": 0 }

@@ -98,8 +98,11 @@ The skill ships four verification layers:
   Hermetic — no network, no codegraph.
 - **L3 — anchor liveness** (`scripts/check-anchors.sh`): every anchor in
   `domains/*.md` resolves to a live codegraph symbol. Requires codegraph.
-- **L4 — drift report** (`scripts/check-drift.sh`): recompute orphans + blindspots;
-  fail (strict, Q7) or warn (advisory) if above threshold. Requires codegraph.
+- **L4 — drift report** (`scripts/check-drift.sh`): structural-presence check that
+  `drift.md` + `.meta/harvest-data.json` exist and contain the Orphans/Blindspots
+  sections. It does NOT automatically recompute drift — drift depends on live
+  deepwiki/codegraph sources, so it is inherently advisory (see spec §8.2);
+  detecting NEW drift requires a manual re-harvest + diff.
 
 CI runs L1 (`scripts/check-skill.sh`) + L2 (`scripts/check-examples.sh`) — hermetic,
 no codegraph. Local dev additionally runs L3 (`scripts/check-anchors.sh`) + L4

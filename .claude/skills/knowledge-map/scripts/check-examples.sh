@@ -44,6 +44,21 @@ else
       echo "✅ L2: domains/$name matches snapshot"
     fi
   done
+
+  # Asymmetric file-set guard: the loops above key off the committed example
+  # files, so a NEWLY-emitted file the example lacks would slip through.
+  # Compare the rendered output set against the committed set (KNOWLEDGE.md,
+  # drift.md, domains/*.md) and fail if render emitted anything not committed.
+  ex_files=$(cd "$EXAMPLE" && find KNOWLEDGE.md drift.md domains -type f 2>/dev/null | sort)
+  tmp_files=$(cd "$tmp" && find KNOWLEDGE.md drift.md domains -type f 2>/dev/null | sort)
+  extra=$(comm -13 <(printf '%s\n' "$ex_files") <(printf '%s\n' "$tmp_files"))
+  if [[ -n "$extra" ]]; then
+    echo "❌ L2: renderer emitted files absent from committed snapshot:"
+    printf '   %s\n' $extra
+    FAIL=$((FAIL+1))
+  else
+    echo "✅ L2: rendered file-set matches committed snapshot (no new files)"
+  fi
 fi
 
 if [[ "$FAIL" -gt 0 ]]; then echo "🛑 L2: $FAIL failures"; exit 1; fi

@@ -289,7 +289,7 @@ status: verified | partial | drifted   # 由锚点状态聚合
 | **L1 静态** | `scripts/check-skill.sh` | KNOWLEDGE.md≤100行 / 每个 domain 文件 frontmatter 合法(domain/deepwiki/status) / 内部 markdown 链接全可解析 / 无 `{{...}}` 占位符残留 | 阻断 | 警告 |
 | **L2 基线 diff** | `scripts/check-examples.sh` | 用 `examples/lucene/answers.json` 重生成 → diff 已提交的 `examples/lucene/` → 零差异 | 阻断 | 阻断 |
 | **L3 锚点解析** | `scripts/check-anchors.sh` | 读 example 的 `.meta/anchors.json`，逐条 `codegraph explore` 验证符号在位；报 RESOLVED/STALE/MISSING 计数 | 阻断 | 警告 |
-| **L4 漂移检测** | `scripts/check-drift.sh` | 重算 orphan/blindspot，与上次基线比，新漂移写 drift.md | 阻断 | 警告 |
+| **L4 漂移检测** | `scripts/check-drift.sh` | 结构存在性校验（drift.md + harvest-data.json 存在且含 Orphans/Blindspots 段）；新漂移检测需手动重新 harvest 后 diff（漂移依赖 live 源，inherently advisory，见 §8.2） | 阻断 | 警告 |
 
 ### 8.1 codegraph 依赖与执行环境
 
