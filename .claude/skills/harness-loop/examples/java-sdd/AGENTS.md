@@ -394,6 +394,7 @@ is verified against it, not against the author's intent.
 ## 子目录索引
 
 docs/specs/ — spec writing conventions (see docs/specs/AGENTS.md)
+concepts/ — 6 core concepts (learning archive)
 
 ## 机械化检查
 

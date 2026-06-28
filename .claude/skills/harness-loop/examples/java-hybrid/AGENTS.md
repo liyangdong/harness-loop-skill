@@ -335,9 +335,7 @@ These tenets resolve the most common judgment calls an agent faces:
 - `state/iteration.md`, `TASKS.md`, `state/entropy-log.md` — the on-disk state surface
 - deusyu/harness-engineering — source of the tenet framing
 
-
 ## 工作循环
-
 
 ## 工作循环: SDD (Spec-Driven Development)
 
@@ -398,7 +396,6 @@ is verified against it, not against the author's intent.
   files so each can be implemented, reviewed, and marked complete
   independently.
 
-
 ---
 
 ## 工作循环: TDD (Test-Driven Development)
@@ -456,11 +453,10 @@ implementation exists to satisfy tests, never the other way around.
   without re-running the suite between edits. A red test caught three steps
   later is much harder to localize than one caught immediately.
 
-
 ## 子目录索引
 
-docs/specs/ — SDD spec writing (see docs/specs/AGENTS.md)
-tests/ — Java TDD tests (see tests/AGENTS.md)
+docs/specs/ — spec writing conventions (see docs/specs/AGENTS.md)
+tests/ — Java tests + AGENTS.md (see tests/AGENTS.md)
 concepts/ — 6 core concepts (learning archive)
 
 ## 机械化检查

@@ -1,4 +1,4 @@
-## How the AI agent works on this repo (appended section for .gitignore)
+# Harness-loop generated — append to existing .gitignore
 
 # State (iteration tracking committed; transcripts not)
 state/transcript*

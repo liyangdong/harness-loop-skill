@@ -441,6 +441,100 @@ def build_language_ignores(q3_token: str) -> str:
     return header + "\n" + "\n".join(lines)
 
 
+def build_hybrid_callout(q2: str, methodologies: list[str]) -> str:
+    """
+    Build the {{HYBRID_CALLOUT}} block injected near the top of root AGENTS.md.
+
+    Empty string for non-Hybrid projects. For Hybrid, produces a callout block
+    naming the methodologies combined, mirroring what issue 004 item 6 captured
+    from hand-authored snapshots.
+
+    No leading or trailing blank lines — the surrounding template's existing
+    blank-line structure supplies separators. The placeholder sits on its own
+    line in the template; an empty value collapses to a blank line that the
+    template's surrounding blanks already account for. To avoid leaving a
+    spurious blank line when non-Hybrid, we include a leading newline only
+    when the callout is non-empty.
+    """
+    if q2 != "Hybrid" or not methodologies:
+        return ""
+    ordered = sorted(methodologies, key=lambda m: HYBRID_PRIORITY.index(m) if m in HYBRID_PRIORITY else 99)
+    combo = " + ".join(ordered)
+    sub_repr = ", ".join(methodologies)
+    priority_chain = " > ".join(HYBRID_PRIORITY)
+    lines = [
+        f"> **Hybrid methodology:** this repo combines **{combo}** (per Q2=Hybrid,",
+        f"> Q2_sub=[{sub_repr}]). Spec-first then test-first: write the spec under",
+        f"> `docs/specs/`, then drive implementation via `tests/`. {ordered[0]} takes priority",
+        f"> ordering ({priority_chain}) — when in conflict, the spec wins.",
+    ]
+    # Leading blank line + body + trailing blank line: the template placeholder
+    # sits between MISSION_ONE_LINER and `## 6 大概念`. We need a blank line
+    # before the block (separator from mission) and a blank line after
+    # (separator from H2). The template currently has:
+    #   {{MISSION_ONE_LINER}}\n{{HYBRID_CALLOUT}}\n## 6 大概念
+    # so for non-Hybrid "" yields `mission\n\n## H2` (correct: one blank line).
+    # For Hybrid we want `mission\n\n<block>\n\n## H2`, so we prepend "\n" and
+    # append "\n" to the joined body.
+    return "\n" + "\n".join(lines) + "\n"
+
+
+def build_strict_mode_desc(strict_mode: str) -> str:
+    """
+    Build the {{STRICT_MODE_DESC}} phrase for the README strict-mode line.
+
+    Per Q8: 'strict' → 'failures block commits'; 'advisory' → 'failures warn
+    but do not block'. Mirrors what the java-sdd snapshot (Q8=advisory) shows
+    versus the java-tdd snapshot (Q8=strict).
+    """
+    if strict_mode == "strict":
+        return "failures block commits"
+    return "failures warn but do not block"
+
+
+def build_manual_checks(q4: list[str]) -> str:
+    """
+    Build the {{MANUAL_CHECKS}} block for the README "manually run checks" section.
+
+    Q4-conditional per issue 004 item 4:
+    - 外部验证 present → both check-tests.sh and check-consistency.sh
+    - 外部验证 absent → only check-consistency.sh
+    """
+    lines = []
+    if "外部验证" in q4:
+        lines.append("bash scripts/check-tests.sh")
+    lines.append("bash scripts/check-consistency.sh")
+    return "\n".join(lines)
+
+
+def build_entry_point_block(q4: list[str]) -> str:
+    """
+    Build the {{ENTRY_POINT_BLOCK}} for root AGENTS.md.
+
+    Q4-conditional per issue 004: when 外部验证 is in Q4, both entry points
+    are listed (check-tests.sh and check-consistency.sh). Otherwise only
+    check-consistency.sh appears. Mirrors what java-sdd snapshot shows.
+    """
+    if "外部验证" in q4:
+        return (
+            "入口：`./scripts/check-tests.sh`（验证完成度）\n"
+            "     `./scripts/check-consistency.sh`（验证仓库一致性）"
+        )
+    return "入口：`./scripts/check-consistency.sh`（验证仓库一致性）"
+
+
+def build_primary_check_script(q4: list[str]) -> str:
+    """
+    Build the {{PRIMARY_CHECK_SCRIPT}} value for TASKS.md.
+
+    Per issue 004 item 5: when 外部验证 is in Q4, subtasks gate on
+    check-tests.sh; otherwise they gate on check-consistency.sh.
+    """
+    if "外部验证" in q4:
+        return "check-tests.sh"
+    return "check-consistency.sh"
+
+
 # ---------------------------------------------------------------------------
 # Main rendering entry point.
 # ---------------------------------------------------------------------------
@@ -507,6 +601,11 @@ def render(answers: dict, out_dir: Path) -> None:
         "{{METHODOLOGY_BLOCK}}":        build_methodology_block(methodologies) if methodologies else "",
         "{{SUBDIR_INDEX}}":             build_subdir_index(methodologies, q3_token, q7),
         "{{CHECKS_INDEX}}":             build_checks_index(q4),
+        "{{ENTRY_POINT_BLOCK}}":        build_entry_point_block(q4),
+        "{{HYBRID_CALLOUT}}":           build_hybrid_callout(q2, methodologies),
+        "{{STRICT_MODE_DESC}}":         build_strict_mode_desc(strict_mode),
+        "{{MANUAL_CHECKS}}":            build_manual_checks(q4),
+        "{{PRIMARY_CHECK_SCRIPT}}":     build_primary_check_script(q4),
         "{{TASKS_POINTER}}":            "见 `TASKS.md`。每轮迭代更新 `state/iteration.md`。",
         "{{STRICT_MODE_DECL}}":         strict_mode,
         "{{STRICT_MODE}}":              strict_mode,

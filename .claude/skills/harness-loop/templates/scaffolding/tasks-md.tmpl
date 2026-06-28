@@ -35,7 +35,7 @@ Active task board for {{PROJECT_NAME}}. Updated each loop iteration.
 ## Conventions
 
 - Each subtask is one checkable unit of work.
-- Check off (`[x]`) only after `scripts/check-tests.sh` passes for that subtask.
+- Check off (`[x]`) only after `scripts/{{PRIMARY_CHECK_SCRIPT}}` passes for that subtask.
 - If blocked: move to Blocked section + add entry to `state/iteration.md`.
 - One PR per subtask when feasible (per throughput-merges concept).
 - When a subtask completes, append a one-line summary to `state/iteration.md`

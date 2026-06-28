@@ -49,11 +49,70 @@ More work but preserves intended UX. L2 passes once features added.
 
 ## Acceptance criteria
 
-- [ ] Decision made per drift item (which path)
-- [ ] For Path B items: renderer enhanced, all 3 snapshots regenerated
-- [ ] For Path A items: snapshots aligned to renderer output
-- [ ] L2 passes (exit 0) on all 3 examples
-- [ ] New renderer features documented in decision-tree.md
+- [x] Decision made per drift item (which path)
+- [x] For Path B items: renderer enhanced, all 3 snapshots regenerated
+- [x] For Path A items: snapshots aligned to renderer output
+- [x] L2 passes (exit 0) on all 3 examples
+- [x] New renderer features documented in decision-tree.md
+
+## Resolution (issue 004 closed)
+
+**Implementation approach: Option A — Python renderer logic.**
+Templates stay simple text with `{{PLACEHOLDER}}` tokens; branching lives in
+`run-with-answers.py`. Per the issue recommendation: keeps templates static
+and reviewable, logic centralized where the answers dict is already in scope.
+
+### Class B (renderer enhancements)
+
+Five new conditional helpers added to `run-with-answers.py`:
+
+| Helper | Placeholder | Behavior |
+|---|---|---|
+| `build_hybrid_callout` | `{{HYBRID_CALLOUT}}` | Empty unless Q2=Hybrid; emits the `>` blockquote naming the Q2_sub methodologies with priority-ordering note |
+| `build_entry_point_block` | `{{ENTRY_POINT_BLOCK}}` | Both lines when 外部验证 ∈ Q4; otherwise only `check-consistency.sh` |
+| `build_manual_checks` | `{{MANUAL_CHECKS}}` | `bash scripts/check-tests.sh` only when 外部验证 ∈ Q4; always `bash scripts/check-consistency.sh` |
+| `build_primary_check_script` | `{{PRIMARY_CHECK_SCRIPT}}` | `check-tests.sh` (外部验证) / `check-consistency.sh` (otherwise) |
+| `build_strict_mode_desc` | `{{STRICT_MODE_DESC}}` | strict → "failures block commits"; advisory → "failures warn but do not block" |
+
+### Class A & C (snapshots aligned)
+
+All 3 example dirs regenerated via:
+```bash
+for ex in java-tdd java-sdd java-hybrid; do
+  exdir="…/examples/$ex"
+  ansfile="$exdir/answers.json"
+  find "$exdir" -type f ! -name answers.json -delete
+  tmp=$(mktemp -d)
+  bash scripts/run-with-answers.sh "$ansfile" "$tmp"
+  cp -r "$tmp/." "$exdir/"
+  rm -rf "$tmp"
+done
+```
+
+Snapshots now reflect renderer output byte-for-byte. Specifically:
+- `.gitignore` header comment uses template's `# Harness-loop generated …`
+- `AGENTS.md` always lists `concepts/` in SUBDIR_INDEX when Q7=生成 (java-tdd
+  snapshot previously omitted this — that was an internal drift between
+  java-tdd and java-hybrid)
+- `check-consistency.sh` is LF (CRLF in the old java-tdd snapshot was a
+  Windows-edit artifact)
+- Hybrid AGENTS.md blank-line structure matches renderer output (the
+  manually-added extra blank lines around `---` separator and before H2s
+  were drift item 7)
+- `tests/pom.xml` comment alignment preserved as-is (renderer doesn't
+  realign — acknowledged as a known cosmetic item that cannot be fixed
+  without a comment-alignment pass the renderer doesn't do)
+
+### Documentation
+
+Five new placeholder rows added to the Substitution map table in
+`wizard/decision-tree.md`, each marked "Added in issue 004".
+
+### Verification
+
+- L1 (`check-skill.sh`): ✅ passes
+- L2 (`check-examples.sh`): ✅ all 3 examples match snapshots, exit 0
+- L3 (`check-bootstrap.sh`): ✅ bootstrap self-check passes
 
 ## Priority
 

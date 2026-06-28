@@ -4,10 +4,10 @@
   Rendered from tests-java/pom.xml.tmpl.
 
   Placeholders consumed (see wizard/decision-tree.md):
-    com.example                     - Maven groupId, e.g. com.example
-    java-tdd-example                - Maven artifactId, derived from PROJECT_NAME
-    0.1.0                           - initial version, e.g. 0.1.0-SNAPSHOT
-    true                            - true (strict) | false (advisory)
+    com.example                  - Maven groupId, e.g. com.example
+    java-tdd-example               - Maven artifactId, derived from PROJECT_NAME
+    0.1.0                   - initial version, e.g. 0.1.0-SNAPSHOT
+    true - true (strict) | false (advisory)
 
   Versions pinned here:
     JDK              21 (LTS, via maven.compiler.release)

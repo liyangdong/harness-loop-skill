@@ -269,6 +269,11 @@ library. If a placeholder appears in a `.tmpl` file, it MUST be listed here.
 | `{{SUBDIR_PATH}}` / `{{SUBDIR_PURPOSE}}` / `{{SUBDIR_CONVENTIONS}}` / `{{SUBDIR_RELATED_CHECKS}}` | Per-subdirectory values derived from Q2/Q3 | `agents-subdir.md.tmpl` (one render per generated subdir) |
 | `{{GROUP_ID}}` / `{{ARTIFACT_ID}}` / `{{VERSION}}` / `{{PACKAGE}}` / `{{CHECKSTYLE_FAILS_ON_ERROR}}` | Java-specific constants: `GROUP_ID=com.example`, `ARTIFACT_ID={{PROJECT_NAME}}`, `VERSION=0.1.0-SNAPSHOT`, `PACKAGE=com.example.{{lowercase PROJECT_NAME}}`, `CHECKSTYLE_FAILS_ON_ERROR=true` (advisory mode → `false`) | `tests-java/pom.xml.tmpl`, `tests-java/src/test/java/FirstTest.java.tmpl` |
 | `{{FEATURE_NAME}}` | User input (asked inline when SDD is selected): the human-readable name of the feature the spec describes, e.g., "User Authentication". Falls back to the spec filename's slug title-cased if the user does not provide one. | `specs/template.md` (the H1 of the generated spec) |
+| `{{HYBRID_CALLOUT}}` | Empty string for non-Hybrid projects. For Hybrid (Q2=Hybrid), a `>` blockquote callout naming the combined methodologies from `Q2_sub` with priority-ordering note. Added in issue 004. | `agents-root.md.tmpl` (between `{{MISSION_ONE_LINER}}` and `## 6 大概念`) |
+| `{{ENTRY_POINT_BLOCK}}` | Q4-conditional: when `外部验证` ∈ Q4, both `check-tests.sh` and `check-consistency.sh` entry-point lines; otherwise only `check-consistency.sh`. Added in issue 004. | `agents-root.md.tmpl` (the `入口：` block) |
+| `{{MANUAL_CHECKS}}` | Q4-conditional: bash lines for the README "manually run checks" section. Includes `bash scripts/check-tests.sh` only when `外部验证` ∈ Q4; always includes `bash scripts/check-consistency.sh`. Added in issue 004. | `readme-section.tmpl` |
+| `{{PRIMARY_CHECK_SCRIPT}}` | Q4-conditional filename for the TASKS.md "check off after `scripts/X` passes" bullet. `check-tests.sh` when `外部验证` ∈ Q4, else `check-consistency.sh`. Added in issue 004. | `tasks-md.tmpl` |
+| `{{STRICT_MODE_DESC}}` | Q8-conditional phrase for the README strict-mode line. `strict` → `"failures block commits"`; `advisory` → `"failures warn but do not block"`. Added in issue 004. | `readme-section.tmpl` |
 
 ### Substitution semantics
 

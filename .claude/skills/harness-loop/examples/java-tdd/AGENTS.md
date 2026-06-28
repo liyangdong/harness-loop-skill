@@ -390,6 +390,7 @@ implementation exists to satisfy tests, never the other way around.
 ## 子目录索引
 
 tests/ — Java tests + AGENTS.md (see tests/AGENTS.md)
+concepts/ — 6 core concepts (learning archive)
 
 ## 机械化检查
 

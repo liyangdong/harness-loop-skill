@@ -6,7 +6,7 @@ This repo uses an [agents.md](https://agents.md)-compatible constraint system. T
 2. **Progressive disclosure**: when entering a subdirectory, reads that subdir's `AGENTS.md` for local rules.
 3. **Mechanical checks**: before commit, `.githooks/pre-commit` runs `scripts/check-*.sh`. CI re-runs the same on PRs.
 4. **Task tracking**: `TASKS.md` is the source of truth for in-progress work. `state/iteration.md` tracks loop progress.
-5. **Strict mode**: this repo is **{{STRICT_MODE}}** — failures block commits.
+5. **Strict mode**: this repo is **{{STRICT_MODE}}** — {{STRICT_MODE_DESC}}.
 
 ### To enable pre-commit hook locally
 
@@ -17,8 +17,7 @@ git config core.hooksPath .githooks
 ### To manually run checks
 
 ```
-bash scripts/check-tests.sh
-bash scripts/check-consistency.sh
+{{MANUAL_CHECKS}}
 ```
 
 ### To start a loop iteration (if using opencode)
